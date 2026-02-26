@@ -1,0 +1,34 @@
+# --- [[ SOVEREIGN ARCHITECTURE .GITIGNORE ]] ---
+
+# 1. Swap, Undo, and Backup (The "Noise" Layer)
+*~
+*.swp
+*.swo
+*.swn
+*.un~
+undo/
+shada/
+view/
+
+# 2. Local State & History
+.netrwhist
+tags
+tags.lock
+tags.temp
+
+# 3. Spellings (Optional: ignore if you don't want personal dictionaries in git)
+spell/*.add
+spell/*.add.spl
+
+# 4. Agent & Tool Artifacts
+.aider*
+test.sh
+
+# 5. mini.deps State (CRITICAL)
+# mini.deps stores its snapshots and cloned repos in a 'deps' folder 
+# usually located in your data path, but if you keep it local, ignore it.
+/deps/
+
+# 6. LSP & Config Junk
+.luarc.json
+.neoconf.json
