@@ -31,6 +31,10 @@ local formatters = {
     args = { '--fix', '$FILENAME' },
     is_filter = false,
   },
+  fish = {
+    bin = 'fish_indent',
+    args = { }, -- fish_indent acts as a pure stdin/stdout filter by default
+  },
 }
 
 --- Executes a CLI formatter as a synchronous filter on the current buffer.
@@ -89,7 +93,9 @@ function M.autoformat()
   local clients = vim.lsp.get_clients({ bufnr = 0, method = 'textDocument/formatting' })
   if #clients > 0 then
     vim.lsp.buf.format({ async = false, timeout_ms = 1000 })
-    return
+    -- We only return if the LSP actually exists. 
+    -- If you want CLI to ALWAYS run even with LSP, remove the return.
+    return 
   end
 
   -- 2. CLI Fallback: If no LSP handles formatting, use our mise-backed CLI bridge.
