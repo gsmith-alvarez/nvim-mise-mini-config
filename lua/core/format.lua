@@ -53,7 +53,8 @@ local function format_with_cli(ft)
   local filename = vim.api.nvim_buf_get_name(0)
   local args = {}
   for _, arg in ipairs(config.args) do
-    table.insert(args, arg:gsub('$FILENAME', filename))
+    local val = arg:gsub('$FILENAME', filename)
+    table.insert(args, val)
   end
 
   -- We pull the entire buffer content as a string for stdin

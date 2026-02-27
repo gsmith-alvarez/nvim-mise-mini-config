@@ -76,10 +76,10 @@ vim.env.PATH = vim.fn.expand '~/.local/share/mise/shims' .. ':' .. vim.env.PATH
 -- Instead of putting everything here, we `require` (load) our modular files.
 
 -- 1. Load Core Settings
-require 'core.options'
-require 'core.keymaps'
-require 'core.autocmds'
-require 'core.commands'
+require 'core.settings.options'
+require 'core.settings.keymaps'
+require 'core.settings.autocmds'
+require 'core.settings.commands'
 require 'core.format'
 require 'core.lint'
 
@@ -104,29 +104,100 @@ require('mini.deps').setup()
 require('mini.deps').add('nvim-lua/plenary.nvim')
 vim.cmd('packadd plenary.nvim') -- Force load its modules into the runtimepath.
 
--- Migrated plugins
-require 'plugins.toggleterm'
-require 'plugins.which-key'
-require 'plugins.yazi'
-require 'plugins.noice'
-require 'plugins.tabout'
+-- =============================================================================
+-- PLUGIN CONFIGURATIONS
+-- =============================================================================
+-- For maintainability, plugin configurations are now organized into categories
+-- based on their functionality, mirroring the structure in the README.
 
--- All plugins are now migrated to mini.deps imperative format
-require 'plugins.colors'
-require 'plugins.completion'
-require 'plugins.debug'
-require 'plugins.harpoon'
-require 'plugins.indent'
-require 'plugins.lazygit'
-require 'plugins.mini'
-require 'plugins.smart-splits'
-require 'plugins.lsp'
-require 'plugins.refactoring'
-require 'plugins.telescope'
-require 'plugins.treesitter'
-require 'plugins.ui'
-require 'plugins.ui_utils'
-require 'plugins.vim-be-good'
+-- UI & Aesthetics
+require 'plugins.ui' -- Main UI setup (Noice, Nui)
+require 'plugins.ui.colors'
+require 'plugins.ui.which-key'
+require 'plugins.ui.treesitter'
+
+-- Core LSP, Completion & Formatting
+require 'plugins.lsp' -- Main LSP config
+require 'plugins.lsp.completion'
+
+-- Navigation & Core Editing
+require 'plugins.editing.mini'
+require 'plugins.editing.refactoring'
+require 'plugins.editing.smart-splits'
+require 'plugins.editing.tabout'
+require 'plugins.editing.indent'
+
+-- Telescope (Fuzzy Finding)
+require 'plugins.finding.telescope'
+
+-- Git Integration
+require 'plugins.git.lazygit'
+
+-- Pain-Driven Learning & Workflows
+require 'plugins.workflow.vim-be-good'
+require 'plugins.workflow.harpoon'
+require 'plugins.workflow.toggleterm'
+require 'plugins.workflow.yazi'
+
+-- Debugging (DAP)
+require 'plugins.dap.debug'
+
+-- Notetaking
+require 'plugins.notetaking.history'
+
+-- ============================================================================
+-- MODULE: JIT Entry Points (Obsidian & LuaSnip)
+-- CONTEXT: Global stubs and autocmds that bootstrap heavy modules on demand.
+-- ============================================================================
+
+local map = vim.keymap.set
+
+-- 1. THE AUTOCOMMAND ENTRY POINTS (Buffer Context)
+local jit_group = vim.api.nvim_create_augroup("JIT_Notetaking", { clear = true })
+
+-- Obsidian JIT
+vim.api.nvim_create_autocmd("FileType", {
+  group = jit_group,
+  pattern = "markdown",
+  callback = function()
+    if not vim.g.obsidian_loaded then
+      require("plugins.notetaking.obsidian").setup()
+      vim.g.obsidian_loaded = true
+    end
+  end,
+})
+
+-- LuaSnip JIT
+vim.api.nvim_create_autocmd("FileType", {
+  group = jit_group,
+  pattern = { "markdown", "tex" },
+  callback = function()
+    if not vim.g.luasnip_loaded then
+      require("plugins.notetaking.luasnips").setup()
+      vim.g.luasnip_loaded = true
+    end
+  end,
+})
+
+-- 2. THE GLOBAL STUB ENTRY POINTS (Cross-Workspace Context)
+-- These allow you to search your vault while working in a Python or Rust file.
+-- They intercept the keystroke, load the plugin, and then execute the native command.
+
+local function bootstrap_obsidian(cmd)
+  return function()
+    if not vim.g.obsidian_loaded then
+      require("plugins.notetaking.obsidian").setup()
+      vim.g.obsidian_loaded = true
+    end
+    -- Execute the requested Obsidian command after the plugin is verified loaded
+    vim.cmd(cmd)
+  end
+end
+
+-- Map the stubs
+map("n", "<leader>oq", bootstrap_obsidian("ObsidianQuickSwitch"), { desc = "[O]bsidian [Q]uick Switch" })
+map("n", "<leader>os", bootstrap_obsidian("ObsidianSearch"), { desc = "[O]bsidian [S]earch (Ripgrep)" })
+map("n", "<leader>on", bootstrap_obsidian("ObsidianNew"), { desc = "[O]bsidian [N]ew Note" })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

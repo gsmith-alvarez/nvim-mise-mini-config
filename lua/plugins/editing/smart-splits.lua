@@ -30,8 +30,8 @@ local M = {}
 --- [[ Smart-Splits: Seamless Neovim/Zellij Navigation & Resizing ]]
 --- Bridges the gap between Neovim splits and Zellij panes for both movement and size.
 
-if not package.loaded["plugins.mini"] then
-  require("plugins.mini")
+if not package.loaded["plugins.editing.mini"] then
+  require("plugins.editing.mini")
 end
 
 local loaded = false

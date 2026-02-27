@@ -78,7 +78,7 @@ function M.lint(bufnr)
   local filename = vim.api.nvim_buf_get_name(bufnr)
   local args = {}
   for _, arg in ipairs(config.args) do
-    table.insert(args, arg:gsub('$FILENAME', filename))
+    table.insert(args, (arg:gsub('$FILENAME', filename)))
   end
 
   -- EXECUTION: Run the linter asynchronously.
