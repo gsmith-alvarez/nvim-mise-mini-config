@@ -130,7 +130,6 @@ This configuration uses a strictly categorized modular structure to separate cor
   - `mini.diff`: Git diff markers in the gutter and toggleable diff overlay. 
   - `mini.statusline`: High-performance statusline with `mise` environment status.
   - `mini.tabline`: Minimalist tabline.
-  - `mini.notify`: Non-blocking notifications.
   - `mini.clue`: Keymap hint system replacing `which-key`. 
 - **`ThePrimeagen/refactoring.nvim`**: Advanced, automated codebase refactoring (extract, inline, etc.). Deferred via keymap stubs.
 

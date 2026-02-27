@@ -23,23 +23,22 @@ function M.setup()
   ls.add_snippets("markdown", latex_snippets)
   ls.add_snippets("tex", latex_snippets)
 
-  -- 4. Map the traversal keys (local to the buffer so they don't pollute global maps)
+  -- 4. Map the traversal keys
+  local opts = { buffer = true, silent = true }
+
   vim.keymap.set({ "i", "s", "x" }, "<Tab>", function()
     if ls.expand_or_jumpable() then
       ls.expand_or_jump()
     else
       vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "n", true)
     end
-  end, opts)
+  end, vim.tbl_extend("force", opts, { desc = "LuaSnip: Expand or Jump" }))
 
-  -- And update Shift-Tab too:
   vim.keymap.set({ "i", "s", "x" }, "<S-Tab>", function()
-    if ls.jumpable(-1) then ls.jump(-1) end
-  end, opts)
-
-  vim.keymap.set({ "i", "s" }, "<S-Tab>", function()
-    if ls.jumpable(-1) then ls.jump(-1) end
-  end, { buffer = true, silent = true, desc = "LuaSnip: Jump to previous node" })
+    if ls.jumpable(-1) then
+      ls.jump(-1)
+    end
+  end, vim.tbl_extend("force", opts, { desc = "LuaSnip: Jump to previous node" }))
 end
 
 return M

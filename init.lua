@@ -98,6 +98,12 @@ vim.opt.rtp:prepend(deps_path)
 -- execution is now explicit and under our direct control.
 require('mini.deps').setup()
 
+
+require('mini.deps').add({
+  source = 'nvim-telescope/telescope.nvim',
+  depends = { 'nvim-lua/plenary.nvim' }
+})
+
 -- [[ GLOBAL FOUNDATION LAYER: Plenary.nvim ]]
 -- CRITICAL: Plenary is a core utility library used by many plugins (Harpoon, Telescope, etc.).
 -- It MUST be loaded globally and early to prevent cascading "module not found" errors.
@@ -111,10 +117,12 @@ vim.cmd('packadd plenary.nvim') -- Force load its modules into the runtimepath.
 -- based on their functionality, mirroring the structure in the README.
 
 -- UI & Aesthetics
-require 'plugins.ui' -- Main UI setup (Noice, Nui)
-require 'plugins.ui.colors'
+require 'plugins.ui.colors' -- Load foundational aesthetic first
+require 'plugins.ui.noice'
+require 'plugins.ui'        -- Main UI setup (Markdown, Trouble)
 require 'plugins.ui.which-key'
 require 'plugins.ui.treesitter'
+require 'plugins.ui.starter'
 
 -- Core LSP, Completion & Formatting
 require 'plugins.lsp' -- Main LSP config

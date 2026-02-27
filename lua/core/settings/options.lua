@@ -41,7 +41,7 @@ vim.g.have_nerd_font = true
 -- [[ Editor Behavior and UI ]]
 
 -- Disable mouse support entirely to enforce keyboard-only navigation.
--- Using the mouse in Neovim slows down your workflow by forcing you to move 
+-- Using the mouse in Neovim slows down your workflow by forcing you to move
 -- your hand away from the home row. Disabling it is the first step toward
 -- true keyboard mastery.
 vim.opt.mouse = ""
@@ -137,3 +137,7 @@ vim.opt.showbreak = '↪ ' -- Visual marker for wrapped lines
 -- [[ Concealing Latex/Mathjax Rendering ]]
 -- Hides certain markup syntax elements for a cleaner look when viewing files like Markdown.
 vim.opt.conceallevel = 2
+
+
+vim.opt.encoding = "utf-8"
+vim.opt.fileencoding = "utf-8"

@@ -20,7 +20,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
     require('plugins.editing.mini.icons')
     require('plugins.editing.mini.statusline')
     require('plugins.editing.mini.tabline')
-    require('plugins.editing.mini.notify')
     require('plugins.editing.mini.diff')
     require('plugins.editing.mini.hipatterns')
     require('plugins.editing.mini.pairs')
