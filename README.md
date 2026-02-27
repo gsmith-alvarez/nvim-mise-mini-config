@@ -14,7 +14,7 @@ This configuration completely purges `lazy.nvim`, `mason.nvim`, and bloated stan
 1. **Deterministic Environment (Mise):** Your toolchain (LSPs, linters, formatters, and debuggers) is defined outside of Neovim using the OS-level environment manager, [**mise**](https://mise.jdx.dev/). Neovim acts strictly as a consumer of these binaries, leveraging a native `mise_shim`.
 2. **Graceful Degradation & Anti-Fragility:** Every external integration is wrapped in `require('core.utils').mise_shim('binary_name')` checks. If a binary is missing, Neovim suppresses Lua errors and boots cleanly, providing a warning or an itemized `:ToolCheck` audit report.
 3. **Consolidated Core (Mini.nvim):** Dozens of plugins have been replaced by the modular `mini.nvim` ecosystem, dramatically improving startup time and UI cohesion.
-4. **Imperative Plugin Management (Mini.deps):** `lazy.nvim` has been purged in favor of `mini.deps`. Plugins are now loaded imperatively with explicit `MiniDeps.add()` calls, often via JIT keymap/command stubs or self-destructing autocommands, ensuring a sub-30ms "time to interactive." 
+4. **Imperative Plugin Management (Mini.deps):** `lazy.nvim` has been purged in favor of `mini.deps`. Plugins are now loaded imperatively with explicit `MiniDeps.add()` calls, often via JIT keymap/command stubs or self-destructing autocommands, ensuring a sub-30ms "time to interactive."
 
 ## 2. Prerequisites & Toolchain Setup
 
@@ -91,8 +91,7 @@ This configuration uses a strictly categorized modular structure to separate cor
     │   ├── notetaking/
     │   │   ├── obsidian.lua  # JIT-loaded Obsidian
     │   │   ├── luasnips.lua  # JIT-loaded Snippet Engine
-    │   │   ├── markdown.lua  # Markdown-specific logic
-    │   │   └── history.lua   # mini.visits & extra
+    │   │   ├── history.lua   # mini.visits & extra
     │   └── dap/
     │       └── debug.lua
     └── snippets/
@@ -103,7 +102,7 @@ This configuration uses a strictly categorized modular structure to separate cor
 
 ### Core LSP, Completion & Formatting (Native-First)
 - **`neovim/nvim-lspconfig`**: Core setup for Language Server Protocol integrations. Now directly configures `vim.lsp.config`.
-- **`saghen/blink.cmp`**: High-performance, low-latency autocompletion engine (with native snippet engine). Loaded on `VimEnter`.
+- **`saghen/blink.cmp`**: High-performance, low-latency autocompletion engine (with native snippet engine). Loaded on `VimEnter`. Keymaps: `<C-j>` (next), `<C-k>` (prev), `<C-l>` (accept).
 - **`folke/lazydev.nvim`**: Specialized setup for Neovim Lua API completions (dependency for `blink.cmp`).
 - **`rafamadriz/friendly-snippets`**: Standard boilerplate snippets for all languages (dependency for `blink.cmp`).
 - **`j-hui/fidget.nvim`**: Unobtrusive UI for LSP progress (the spinner in the corner).
@@ -111,13 +110,13 @@ This configuration uses a strictly categorized modular structure to separate cor
 - **Native Diagnostic Bridge (`core/lint.lua`)**: Replaces `mfussenegger/nvim-lint`. Uses `vim.system()` to run async CLI linters (`shellcheck`, `markdownlint-cli2`) and injects results into `vim.diagnostic.set()`.
 
 ### Notetaking & Second Brain (JIT-Loaded)
-- **`epwalsh/obsidian.nvim`**: Zero-overhead integration. Bootstrapped only when opening Markdown files or via `<leader>o` stubs. Integrated with `mini.pick` to prevent Telescope bloat. Keymaps: `<leader>oq` (Quick Switch), `<leader>os` (Search), `<leader>on` (New Note).
-- **`L3MON4D3/LuaSnip`**: High-performance, LaTeX auto-expansion engine. JIT loaded only for Markdown/TeX files to preserve sub-30ms startup.
-- **`LaTeX Suite (snippets/latex.lua)`**: A custom, 150+ snippet payload for sub-millisecond LaTeX entry, featuring auto-expanding regex triggers and Greek letter variables.
+- **`epwalsh/obsidian.nvim`**: Zero-overhead integration. Bootstrapped only when opening Markdown files or via `<leader>o` stubs. Integrated with `mini.pick` to prevent Telescope bloat. Keymaps: `<leader>oq` (Quick Switch), `<leader>os` (Search), `<leader>on` (New Note), `gf` (Follow Link), `<leader>ov` (V-Split Link), `<leader>oh` (H-Split Link).
+- **`L3MON4D3/LuaSnip`**: High-performance, LaTeX auto-expansion engine. JIT loaded only for Markdown/TeX files to preserve sub-30ms startup. Keymaps: `<Tab>` (expand/jump), `<S-Tab>` (jump back).
+- **`LaTeX Suite (snippets/latex.lua)`**: A custom, 200+ snippet payload for sub-millisecond LaTeX entry, featuring context-aware math zone detection, programmatic Greek and symbol generation, boundary-safe operators (e.g., `in`, `sum`), auto-backslashing, and visual wrappers (e.g., `underbrace`).
+- **`mini.visits` & `mini.extra`**: Automated history tracking for files. Keymaps: `<leader>fr` (Find Recent), `<leader>fc` (Contextual History), `<leader>so` (Omnisearch).
 
 ### Navigation & Core Editing
 - **`mrjones2014/smart-splits.nvim`**: Seamlessly navigates between Neovim splits and Zellij panes for both movement (`<C-h/j/k/l>`) and resizing (`<M-h/j/k/l>`). Utilizes a hotswap stub pattern to defer loading.
-- **`mini.visits` & `mini.extra`**: Replaces standard recent file lists. Tracks frequency and recency. Keymaps: `<leader>fr` (Find Recent), `<leader>fc` (Contextual History).
 - **`abecodes/tabout.nvim`**: Uses `<Tab>` or `<C-l>` (Deterministic Escape Hatch) to seamlessly jump out of brackets and quotes. Immediately loaded.
 - **`echasnovski/mini.nvim`**: Core editing suite replacing dozens of plugins:
   - `mini.ai`: Advanced text objects (`va)`, `yinq`).
@@ -128,46 +127,46 @@ This configuration uses a strictly categorized modular structure to separate cor
   - `mini.indentscope`: Visual vertical lines for indentation. 
   - `mini.icons`: Fast, cached icons (mocking `nvim-web-devicons`).
   - `mini.diff`: Git diff markers in the gutter and toggleable diff overlay. 
-  - `mini.statusline`: High-performance statusline with `mise` environment status.
+  - `mini.statusline`: High-performance statusline with `mise` environment status. 
   - `mini.tabline`: Minimalist tabline.
   - `mini.clue`: Keymap hint system replacing `which-key`. 
 - **`ThePrimeagen/refactoring.nvim`**: Advanced, automated codebase refactoring (extract, inline, etc.). Deferred via keymap stubs.
 
 ### Telescope (Fuzzy Finding)
-- **`nvim-telescope/telescope.nvim`**: Highly extensible fuzzy finder for files, strings, and LSP symbols. Deferred via JIT keymap stubs.
-- **`jvgrootveld/telescope-zoxide`**: Integration with Zoxide for rapid directory hopping.
+- **`nvim-telescope/telescope.nvim`**: Highly extensible fuzzy finder for files, strings, and LSP symbols. Deferred via JIT keymap stubs. Keymaps: `<leader>ff` (Find Files), `<leader>rr` (LSP References), `<leader>gd` (LSP Definitions), `<leader>ws` (LSP Workspace Symbols).
+- **`jvgrootveld/telescope-zoxide`**: Integration with Zoxide for rapid directory hopping. Keymap: `<leader>cd` (Change Directory).
 - **`nvim-telescope/telescope-fzf-native.nvim`**: C-port of fzf for dramatically faster Telescope searches.
 - **`nvim-telescope/telescope-ui-select.nvim`**: Reroutes standard Neovim UI popups into Telescope.
 
 ### Git Integration
-- **`kdheepak/lazygit.nvim`**: Terminal UI for Git. Gracefully mapped to your `mise` binary. Deferred via keymap stub.
-- **`mini.diff` (part of `mini.nvim`)**: Shows git diff markers in the gutter and provides a toggleable diff overlay.
+- **`kdheepak/lazygit.nvim`**: Terminal UI for Git. Gracefully mapped to your `mise` binary. Deferred via keymap stub. Keymap: `<leader>gg`.
+- **`mini.diff` (part of `mini.nvim`)**: Shows git diff markers in the gutter and provides a toggleable diff overlay. Keymap: `<leader>gd`.
 
 ### UI & Aesthetics
 - **`catppuccin/nvim` (Mocha)**: Primary high-contrast, modern colorscheme. Immediately loaded.
-- **`folke/noice.nvim`**: Modern, high-contrast floating UI for the command line and messages. Deferred via `VimEnter`.
-- **`folke/which-key.nvim`**: Popup keybinding discovery menu. Deferred via `VimEnter`.
-- **`folke/trouble.nvim`**: List/panel for all errors, warnings, and TODOs. Deferred via `BufEnter`.
-- **`nvim-treesitter/nvim-treesitter`**: AST parser for superior syntax highlighting. Deferred via `BufReadPre`.
-- **`mikavilpas/yazi.nvim`**: Rust-based terminal file manager (integrated via command stub for `<leader>y`).
+- **`folke/noice.nvim`**: Modern, high-contrast floating UI for the command line, search, and messages. Loaded on `VimEnter`.
+- **`folke/which-key.nvim`**: Popup keybinding discovery menu. Deferred via `VimEnter` autocmd. Keymap: `<leader>?` (Show Cheatsheet).
+- **`folke/trouble.nvim`**: List/panel for all errors, warnings, and TODOs. Deferred via `BufEnter` autocmd. Keymap: `<leader>xx`.
+- **`nvim-treesitter/nvim-treesitter`**: AST parser for superior syntax highlighting. Deferred via `BufReadPre`. 
+- **`mikavilpas/yazi.nvim`**: Rust-based terminal file manager. Keymap: `<leader>y`.
 
 ### Utilities & Diagnostics (CLI Integrations)
-- **`NMAC427/guess-indent.nvim`**: Detects and applies the correct indentation size. Deferred via `BufReadPre`.
-- **`sudormrfbin/cheatsheet.nvim`**: Quick-reference cheatsheet. Deferred via `<leader>z`.
-- **`gojq` (`:Jq`)**: Live scratchpad to query JSON directly from the current buffer into a split window.
-- **`ouch` (Transparent Archive Explorer)**: Intercepts archive file openings and displays contents in a Neovim buffer.
-- **`sd` (`:Sd`)**: Surgical regex find-and-replace on the current buffer with `sd`.
-- **`xh` (`:Xh`)**: HTTP client to execute requests from the current line and display responses.
-- **`glow` (`<leader>tm`)**: Floating Markdown preview for the current buffer.
-- **`aider-chat` (`<leader>ta`)**: Context-aware AI pair programmer in a floating terminal.
-- **`watchexec` (`:Watch`)**: Continuous execution daemon for tests/builds in a horizontal split.
-- **`podman-tui` (`<leader>ti`)**: Floating TUI for container management.
-- **`jless` (`:Jless`)**: Structural JSON viewer for massive files.
-- **`typos-cli` (`:Typos`)**: Project-wide spell checker that populates the Quickfix list.
+- **`NMAC427/guess-indent.nvim`**: Detects and applies the correct indentation size. Deferred via `BufReadPre`. 
+- **`sudormrfbin/cheatsheet.nvim`**: Quick-reference cheatsheet. Keymap: `<leader>z`.
+- **`gojq` (`:Jq`)**: Live scratchpad to query JSON. Command: `:Jq <query>`.
+- **`ouch` (Transparent Archive Explorer)**: Intercepts archive file openings (`.zip`, `.tar.gz`, etc.) and displays contents. Automatic.
+- **`sd` (`:Sd`)**: Surgical regex find-and-replace. Command: `:Sd <find> <replace>`.
+- **`xh` (`:Xh`)**: HTTP client. Command: `:Xh <request_args>`.
+- **`glow` (`<leader>tm`)**: Floating Markdown preview. Keymap: `<leader>tm`.
+- **`aider-chat` (`<leader>ta`)**: Context-aware AI pair programmer. Keymap: `<leader>ta`.
+- **`watchexec` (`:Watch`)**: Continuous execution daemon. Command: `:Watch <command>`.
+- **`podman-tui` (`<leader>ti`)**: Floating TUI for container management. Keymap: `<leader>ti`.
+- **`jless` (`:Jless`)**: Structural JSON viewer. Command: `:Jless`.
+- **`typos-cli` (`:Typos`)**: Project-wide spell checker. Command: `:Typos`.
 
 ### Debugging (DAP)
-- **`mfussenegger/nvim-dap`**: The core Debug Adapter Protocol client.
-- **`rcarriga/nvim-dap-ui`**: A visual debugging interface overlay.
+- **`mfussenegger/nvim-dap`**: Core Debug Adapter Protocol client. Keymap: `<F5>` (Start/Continue), `<leader>b` (Toggle Breakpoint), `<leader>du` (Toggle UI).
+- **`rcarriga/nvim-dap-ui`**: Visual debugging interface overlay.
 - **PlatformIO Hardware Debug**: Restored custom configuration for LLDB/OpenOCD. Deferred via keymap stubs.
 
 ## 5. Neovim Key Notation (Cheat Sheet)
@@ -182,16 +181,16 @@ This configuration uses a strictly categorized modular structure to separate cor
 ## 6. Three-Tiered Navigation Architecture
 
 1. **Tier 1: Global Layer (Zoxide)**: Macro-navigation between projects via `<leader>cd`.
-2. **Tier 2: Discovery Layer (Telescope / Mini.files)**: Locating files within a project via `<leader>ff` or `<leader>e`.
-3. **Tier 3: Action Layer (Harpoon 2)**: Instant jumps between tight coupled files via `Ctrl-1` to `Ctrl-4`.
+2. **Tier 2: Discovery Layer (Telescope / Mini.files)**: Locating files within a project via `<leader>ff` or `<leader>e` (`-` for parent directory).
+3. **Tier 3: Action Layer (Harpoon 2)**: Instant jumps between tight coupled files via `<leader>a` (add) and `Ctrl-1` to `Ctrl-4` (jump).
 
 ## 7. Key Workflows
 
 ### Obsidian JIT Flow
-Pressing `<leader>oq`, `<leader>os`, or `<leader>on` dynamically boots Obsidian.nvim, configures your vault at `~/Documents/Obsidian`, and executes the command. Opening any Markdown file also triggers an automatic, once-per-session boot to ensure note-taking tools are ready.
+Pressing `<leader>oq`, `<leader>os`, or `<leader>on` dynamically boots Obsidian.nvim, configures your vault at `~/Documents/Obsidian`, and executes the command. Opening any Markdown file also triggers an automatic, once-per-session boot to ensure note-taking tools are ready. Buffer-local keymaps like `gf` (follow link) and `<leader>ov`/`<leader>oh` (split links) are available within notes.
 
 ### Omnisearch & History
-- **`<leader>so`**: [S]earch [O]mni. Uses `mini.pick` and `ripgrep` for full-text indexing.
+- **`<leader>so`**: [S]earch [O]mni. Uses `mini.pick` and `ripgrep` for full-text indexing across the vault.
 - **`<leader>fr`**: [F]ind [R]ecent Files (Global).
 - **`<leader>fc`**: [F]ind [C]ontextual (Directory-scoped visits).
 
@@ -199,8 +198,15 @@ Pressing `<leader>oq`, `<leader>os`, or `<leader>on` dynamically boots Obsidian.
 Run `:ToolCheck` to scan for required binaries. It provides a pass/fail checklist and `mise install` commands for missing tools.
 
 ### Smart Auto-Pair & Tab-Out
-`mini.pairs` handles closing. `<Tab>` escapes normally, but `<C-l>` is the **Deterministic Escape Hatch** that unconditionally jumps out of brackets without triggering snippets.
+`mini.pairs` handles closing. `<Tab>` expands LuaSnip snippets or jumps to the next node. `<S-Tab>` jumps to the previous node. `<C-l>` is the **Deterministic Escape Hatch** that unconditionally jumps out of brackets without triggering snippets.
 
 ### AI & Continuous Execution
-- **AI Pair Programmer (`<leader>ta`)**: Toggles a floating terminal with `aider-chat`.
+- **AI Pair Programmer (`<leader>ta`)**: Toggles a floating terminal with `aider-chat`. The current file's path is automatically injected into `aider`'s context.
 - **Continuous Execution (`:Watch <cmd>`)**: Uses `watchexec` to re-run commands (e.g., tests) on file save.
+
+## ⚠️ Architectural Conflicts
+
+1. **`s` Key Override (Mini.surround):** `mini.surround` maps `s` (e.g., `saiw)`) which shadows the native Vim `s` command (Substitute character). Retrain muscle memory to use `cl` or map `mini.surround` to a distinct prefix.
+2. **`<C-l>` Multimodal Overloading:** In Normal mode, it moves focus to the right window (`plugins/editing/smart-splits.lua`). In Insert mode, it's the Deterministic Escape Hatch for `tabout.nvim` (`plugins/editing/tabout.lua`). Modal context separation makes this safe, but mind the mental shift.
+3. **`<Esc>` Native Override:** In Normal mode, it clears search highlights (`:nohlsearch`). Masks the native terminal bell/escape sequence but greatly improves usability.
+4. **`<C-e>` Completion Overloading:** In Insert mode, it hides the completion menu in `blink.cmp`. This is safe modal separation.
