@@ -117,7 +117,7 @@ This configuration uses a strictly categorized modular structure to separate cor
 
 ### Navigation & Core Editing
 - **`mrjones2014/smart-splits.nvim`**: Seamlessly navigates between Neovim splits and Zellij panes for both movement (`<C-h/j/k/l>`) and resizing (`<M-h/j/k/l>`). Utilizes a hotswap stub pattern to defer loading.
-- **`abecodes/tabout.nvim`**: Uses `<Tab>` or `<C-l>` (Deterministic Escape Hatch) to seamlessly jump out of brackets and quotes. Immediately loaded.
+- **`abecodes/tabout.nvim`**: Uses `<C-l>` (Deterministic Escape Hatch) to seamlessly jump out of brackets and quotes. Immediately loaded.
 - **`echasnovski/mini.nvim`**: Core editing suite replacing dozens of plugins:
   - `mini.ai`: Advanced text objects (`va)`, `yinq`).
   - `mini.surround`: Add/delete/replace surroundings (brackets, quotes).
@@ -198,7 +198,7 @@ Pressing `<leader>oq`, `<leader>os`, or `<leader>on` dynamically boots Obsidian.
 Run `:ToolCheck` to scan for required binaries. It provides a pass/fail checklist and `mise install` commands for missing tools.
 
 ### Smart Auto-Pair & Tab-Out
-`mini.pairs` handles closing. `<Tab>` expands LuaSnip snippets or jumps to the next node. `<S-Tab>` jumps to the previous node. `<C-l>` is the **Deterministic Escape Hatch** that unconditionally jumps out of brackets without triggering snippets.
+`mini.pairs` handles closing. `<C-j>` expands LuaSnip snippets or jumps to the next node. `<C-k>` jumps to the previous node. `<C-l>` is the **Deterministic Escape Hatch** that unconditionally jumps out of brackets without triggering snippets. `<Tab>` is now exclusively for `blink.cmp` completion navigation and acceptance.
 
 ### AI & Continuous Execution
 - **AI Pair Programmer (`<leader>ta`)**: Toggles a floating terminal with `aider-chat`. The current file's path is automatically injected into `aider`'s context.

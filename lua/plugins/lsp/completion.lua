@@ -51,8 +51,9 @@ vim.api.nvim_create_autocmd('VimEnter', {
         preset = 'none',
         ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
         ['<C-e>'] = { 'hide' },
-        ['<CR>'] = { 'accept', 'fallback' },
-        -- Ctrl-Homerow Selection (Resolves Tab conflicts)
+        ['<Tab>'] = { 'select_next', 'fallback' },
+        ['<S-Tab>'] = { 'select_prev', 'fallback' },
+        ['<CR>'] = { 'accept' },
         ['<C-j>'] = { 'select_next', 'fallback' },
         ['<C-k>'] = { 'select_prev', 'fallback' },
         ['<C-l>'] = { 'accept', 'fallback' },

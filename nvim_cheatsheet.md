@@ -1,1 +1,80 @@
-# Neovim Workflow Cheatsheet\n\n## Potential Conflicts\n\n1.  **`<leader>h` Overloading:** This keybinding is used for multiple purposes, creating ambiguity:\n    *   In `lua/core/settings/keymaps.lua`, `<C-h>` is for moving focus to the left window, but `<leader>h` is a `which-key` group for Hunk/Harpoon. This is a common pattern for `<leader>` followed by a direction key, so it might be an intentional distinction (Ctrl vs Leader).\n    *   The provided `nvim_cheatsheet.md` also lists `<leader>e` for `Mini.files: Open explorer in current global cwd`. This creates a direct conflict between the `which-key` group and a specific plugin action if Harpoon or Mini.files uses it as a direct action. It is a source of confusion that should be resolved.\n2.  **`s` Key Override (Mini.surround):** Shadows native `s`. Retrain muscle memory to use `cl`.\n3.  **`<C-l>` Multimodal Overloading:** Window right (Normal) vs. Deterministic escape hatch (Insert).\n4.  **`<Esc>` Native Override:** Clears search highlights. Masks native terminal bell.\n5.  **`<C-e>` Completion Overloading:** Hides completion (Insert) vs. Harpoon quick menu (Normal).\n\n---\n\n## Plugin Summaries\n\n*   **which-key.nvim**: A utility plugin that displays a pop-up menu of available keybindings based on a prefix key, making key discovery easier.\n*   **Obsidian.nvim**: Integrates Neovim with Obsidian.md vaults for note-taking and knowledge management.\n*   **mini.nvim (ecosystem)**: A collection of minimalist, modular plugins designed for performance and specific functionalities like AI-powered text objects, file exploration, and window management.\n*   **telescope.nvim**: A highly extensible fuzzy finder that provides a powerful interface for navigating files, buffers, git history, and more.\n*   **lazygit**: Seamlessly integrates the `lazygit` TUI application into Neovim for efficient Git operations.\n*   **harpoon**: A simple and effective tool for quickly marking and navigating between frequently used files.\n*   **toggleterm.nvim**: A flexible plugin for creating and managing Neovim-integrated terminal windows.\n*   **vim-be-good**: An interactive game to improve Vim/Neovim navigation and editing skills.\n*   **yazi**: Integrates the `yazi` terminal file manager directly into Neovim for advanced file browsing.\n*   **nvim-dap**: Neovim\'s Debug Adapter Protocol client for integrated debugging capabilities.\n\n---\n\n## Keybindings\n\n### Core Vim Muscle Memory\n\n| Key Chord | Mode | Action / Command | Plugin/Source |\n| :--- | :---: | :--- | :--- |\n| `ciw` / `caw` | N | Change inner word / change a word (includes trailing space) | `Native` |\n| `dap` / `yap` | N | Delete / yank a paragraph | `Native` |\n| `%` | N | Jump to matching bracket/parenthesis | `Native` |\n| `qq` / `@q` | N | Record macro to register `q` / Play macro from register `q` | `Native` |\n| `m[a-z]` / `\'[a-z]`| N | Set local mark / Jump to local mark | `Native` |\n| `0` / `^` / `$` | N | Jump to start of line / first non-blank character / end of line | `Native` |\n| `gg` / `G` | N | Jump to top of file / bottom of file | `Native` |\n| `*` / `#` | N | Search forward / backward for word under cursor | `Native` |\n| `C` / `D` | N | Change / Delete from cursor to the end of the line | `Native` |\n\n### General Navigation & UI\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` | `<Esc>` | Clear highlights on search (`<cmd>nohlsearch<CR>`) | Core Neovim |\n| `n` | `<leader>?` | Show Workflow Cheatsheet (floating window) | Core Neovim |\n| `n` (buffer-local) | `q` | Close Cheatsheet (`<cmd>close<CR>`) | Cheatsheet Buffer |\n| `n` (buffer-local) | `<Esc>` | Close Cheatsheet (`<cmd>close<CR>`) | Cheatsheet Buffer |\n| `t` | `<Esc><Esc>` | Exit terminal mode (`<C-\\><C-n>`) | Core Neovim / Terminal |\n| `n` | `j` | Move visually down wrapped lines (`v:count == 0 ? \'gj\' : \'j\'`) | Core Neovim / Text Navigation |\n| `n` | `k` | Move visually up wrapped lines (`v:count == 0 ? \'gk\' : \'k\'`) | Core Neovim / Text Navigation |\n\n### Window Management\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` | `<C-h>` | Move focus to the left window (`<C-w><C-h>`) | Core Neovim / Window Navigation |\n| `n` | `<C-l>` | Move focus to the right window (`<C-w><C-l>`) | Core Neovim / Window Navigation |\n| `n` | `<C-j>` | Move focus to the lower window (`<C-w><C-j>`) | Core Neovim / Window Navigation |\n| `n` | `<C-k>` | Move focus to the upper window (`<C-w><C-k>`) | Core Neovim / Window Navigation |\n\n### Three-Tiered Navigation (Zoxide, Telescope, Mini.files, Yazi, Harpoon 2)\n\n| Key Chord | Mode | Action / Command | Definition File |\n| :--- | :---: | :--- | :--- |\n| **Tier 1 (Global)** | | | |\n| `<leader>cd` | N | Telescope: [C]hange [D]irectory (Zoxide) | `plugins/finding/telescope.lua` |\n| **Tier 2 (Discovery)** | | | |\n| `<leader>ff` | N | Telescope: [F]ind [F]iles (Discovery) | `plugins/finding/telescope.lua` |\n| `<leader>e` | N | Mini.files: Open explorer in current global `cwd` | `plugins/editing/mini/files.lua` |\n| `-` | N | Mini.files: Open parent directory (relative) | `plugins/editing/mini/files.lua` |\n| `<leader>y` | N | Yazi: Open File Manager | `plugins/workflow/yazi.lua` |\n| **Tier 3 (Action)** | | | |\n| `<leader>a` | N | Harpoon: [A]dd File to list | `plugins/workflow/harpoon.lua` |\n| `<leader>hc` | N | Harpoon: Toggle Quick Menu | `plugins/workflow/harpoon.lua` |\n| `Ctrl-1...4` | N | Harpoon: Navigate to Files 1-4 (Instant) | `plugins/workflow/harpoon.lua` |\n| `<leader>H` | N | Harpoon: [H]arpoon [C]lear all marks | `plugins/workflow/harpoon.lua` |\n\n### Diagnostics & LSP\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` | `<leader>q` | Open diagnostic Quickfix list (`vim.diagnostic.setloclist`) | Core Neovim / Diagnostics |\n| `n` (which-key) | `<leader>q` | Open diagnostic [Q]uickfix list | which-key.nvim |\n| `n` (which-key) | `<leader>f` | [F]ormat buffer | which-key.nvim |\n| `n` (which-key) | `<leader>th` | 💡 LSP: Inlay Hints (Toggle) | which-key.nvim |\n| `n` (which-key) | `<leader>sd` | [S]earch [D]iagnostics (Telescope) | which-key.nvim |\n| `gri` | N | LSP: [G]oto [I]mplementation (Telescope) | `plugins/lsp/init.lua` |\n| `grd` | N | LSP: [G]oto [D]efinition (Telescope) | `plugins/lsp/init.lua` |\n| `grD` | N | LSP: [G]oto [D]eclaration | `plugins/lsp/init.lua` |\n| `gO` | N | LSP: Open Document Symbols (Telescope) | `plugins/lsp/init.lua` |\n| `gW` | N | LSP: Open Workspace Symbols (Telescope) | `plugins/lsp/init.lua` |\n| `grt` | N | LSP: [G]oto [T]ype Definition (Telescope) | `plugins/lsp/init.lua` |\n| `<C-space>` | I | Blink: Show/hide documentation | `plugins/lsp/completion.lua` |\n| `<C-j>` | I | Blink: Select next item | `plugins/lsp/completion.lua` |\n| `<C-k>` | I | Blink: Select previous item | `plugins/lsp/completion.lua` |\n| `<C-l>` | I | Blink: Accept selection | `plugins/lsp/completion.lua` |\n| `<C-e>` | I | Blink: Hide menu | `plugins/lsp/completion.lua` |\n| `<C-b>` | I | Blink: Scroll documentation up | `plugins/lsp/completion.lua` |\n| `<C-f>` | I | Blink: Scroll documentation down | `plugins/lsp/completion.lua` |\n\n### Notetaking (Obsidian)\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` | `<leader>oq` | Obsidian Quick Switch (`ObsidianQuickSwitch`) | Obsidian.nvim |\n| `n` | `<leader>os` | Obsidian Search (Ripgrep) (`ObsidianSearch`) | Obsidian.nvim |\n| `n` | `<leader>on` | Obsidian New Note (`ObsidianNew`) | Obsidian.nvim |\n\n### Embedded Execution & Debugging\n\n| Key Chord | Mode | Action / Command | Definition File |\n| :--- | :---: | :--- | :--- |\n| `<C-\\>` | N/T | Toggle Terminal | `plugins/workflow/toggleterm.lua` |\n| `<leader>tp` | N | Toggle [P]rocess Monitor (btm) | `plugins/workflow/toggleterm.lua` |\n| `<leader>tm` | N | Toggle [M]arkdown Preview (glow) | `plugins/workflow/toggleterm.lua` |\n| `<leader>ts` | N | Toggle [S]potify Player | `plugins/workflow/toggleterm.lua` |\n| `<leader>ta` | N | Toggle [A]ider AI Chat (context-aware) | `plugins/workflow/toggleterm.lua` |\n| `<leader>ti` | N | Toggle [I]nfrastructure (podman-tui) | `plugins/workflow/toggleterm.lua` |\n| `:Watch <cmd>` | N | Run command continuously on file changes | `core/settings/commands.lua` |\n| `<F5>` | N | Debug: Start/Continue | `plugins/dap/debug.lua` |\n| `<leader>b` | N | Debug: Toggle Breakpoint | `plugins/dap/debug.lua` |\n| `<leader>du` | N | Debug: Toggle UI | `plugins/dap/debug.lua` |\n| `n` (which-key) | `<leader>dr` | Toggle DAP REPL | which-key.nvim |\n\n### Search & Navigation (Telescope & Zoxide)\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` (which-key) | `<leader>ff` | [F]ind [F]iles (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader>sh` | [S]earch [H]elp (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader>sk` | [S]earch [K]eymaps (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader>ss` | [S]earch [S]elect Telescope | which-key.nvim |\n| `n` (which-key) | `<leader>sw` | [S]earch current [W]ord (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader>sg` | [S]earch by [G]rep (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader>sr` | [S]earch [R]esume (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader>s.` | [S]earch Recent Files (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader>sn` | [S]earch [N]eovim files (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader><leader>` | [ ] Find existing buffers (Telescope) | which-key.nvim |\n| `n` (which-key) | `<leader>cd` | [C]hange [D]irectory (Zoxide) | which-key.nvim |\n\n### Refactoring\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` (which-key) | `<leader>re` | [E]xtract Function | which-key.nvim |\n| `n` (which-key) | `<leader>rf` | Extract [F]unction to File | which-key.nvim |\n| `n` (which-key) | `<leader>rv` | Extract [V]ariable | which-key.nvim |\n| `n` (which-key) | `<leader>ri` | [I]nline Variable | which-key.nvim |\n| `n` (which-key) | `<leader>rr` | [R]ing (Telescope) | which-key.nvim |\n\n### Terminal & External Tools\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` (which-key) | `<leader>y` | 🖼️ Yazi File Manager | which-key.nvim |\n| `n`, `v` (which-key) | `<leader>h` | ⚓ Hunk / Harpoon (Group) | which-key.nvim |\n\n### PlatformIO\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` (which-key) | `<leader>pb` | [B]uild Project | which-key.nvim |\n| `n` (which-key) | `<leader>pu` | [U]pload Firmware | which-key.nvim |\n| `n` (which-key) | `<leader>pm` | Device [M]onitor | which-key.nvim |\n| `n` (which-key) | `<leader>pc` | Update [C]ompilation Database | which-key.nvim |\n\n### Pain-Driven Learning\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `n` | `<Up>` | Disabled: Use h, j, k, l! | Core Neovim |\n| `n` | `<Down>` | Disabled: Use h, j, k, l! | Core Neovim |\n| `n` | `<Left>` | Disabled: Use h, j, k, l! | Core Neovim |\n| `n` | `<Right>` | Disabled: Use h, j, k, l! | Core Neovim |\n| `v` | `<Up>` | Disabled: Use h, j, k, l! | Core Neovim |\n| `v` | `<Down>` | Disabled: Use h, j, k, l! | Core Neovim |\n| `v` | `<Left>` | Disabled: Use h, j, k, l! | Core Neovim |\n| `v` | `<Right>` | Disabled: Use h, j, k, l! | Core Neovim |\n\n---\n\n## Version Control & CLI Integrations\n\n| Key Chord | Mode | Action / Command | Definition File |\n| :--- | :---: | :--- | :--- |\n| `<leader>gg` | N | Lazy[G]it [G]UI | `plugins/git/lazygit.lua` |\n| `<leader>gd` | N | Toggle [G]it [D]iff overlay | `plugins/editing/mini/diff.lua` |\n\n---\n\n## User Commands\n\n| Mode | Key sequence | Action/Command | Plugin/Source |\n|:---|:---|:---|:---|\n| `c` | `:ToolCheck` | Audit required dependencies and suggest installation steps | Core Neovim |\n| `c` | `:Jq [query]` | Run gojq on current buffer | Core Neovim |\n| `c` | `:Sd <find> <replace>` | Surgical replace via sd | Core Neovim |\n| `c` | `:Xh [args]` | Execute HTTP request via xh | Core Neovim |\n| `c` | `:Typos` | Populate Quickfix with project typos | Core Neovim |\n| `c` | `:Watch <command>` | Run command continuously on file changes via watchexec | Core Neovim |\n| `c` | `:Jless` | Open current JSON file in jless | Core Neovim |
+1. Core Vim Muscle Memory (The "Native" Tier)
+| Key Chord | Mode | Action / Command | Source |
+| :--- | :---: | :--- | :--- |
+| ciw / caw | N | Change inner word / change a word | Native |
+| dap / yap | N | Delete / yank a paragraph | Native |
+| % | N | Jump to matching bracket/parenthesis | Native |
+| qq / @q | N | Record / Play macro (register q) | Native |
+| m[a-z] / '[a-z] | N | Set / Jump to local mark | Native |
+| 0 / ^ / $ | N | Start of line / first char / end of line | Native |
+| gg / G | N | Top / Bottom of file | Native |
+| * / # | N | Search forward / backward for word under cursor | Native |
+| C / D | N | Change / Delete to end of line | Native |
+| j / k | N | Smart visual line movement (gj/gk) | Core |
+2. Window, Panel & Buffer Management
+| Key Chord | Mode | Action | Plugin/Source |
+| :--- | :---: | :--- | :--- |
+| <C-w>v | N | Split window vertically | Native |
+| <C-w>s | N | Split window horizontally | Native |
+| <C-w>q / <C-w>c | N | Close current window/panel | Native |
+| <C-w>o | N | Close all other windows (maximize current) | Native |
+| <C-w>= | N | Equalize all window sizes | Native |
+| <C-h/j/k/l> | N | Move focus to Left/Down/Up/Right window | smart-splits |
+| [b / ]b | N | Go to previous / next buffer | mini.bracketed |
+3. Multi-Tiered Navigation
+
+Tier 1: Global (Zoxide & Telescope)
+| Key Chord | Mode | Action | Plugin |
+| :--- | :---: | :--- | :--- |
+| <leader>cd | N | [C]hange [D]irectory (Zoxide) | telescope.lua |
+| <leader>ff | N | [F]ind [F]iles (Discovery) | telescope.lua |
+| <leader><leader> | N | Find existing buffers | telescope.lua |
+
+Tier 2: Discovery (File Browsers)
+| Key Chord | Mode | Action | Plugin |
+| :--- | :---: | :--- | :--- |
+| - | N | Open parent directory (relative) | mini.files |
+| <leader>y | N | Open Full TUI File Manager | yazi.lua |
+
+Tier 3: Action (Harpoon - Fixed)
+| Key Chord | Mode | Action | Plugin |
+| :--- | :---: | :--- | :--- |
+| <M-a> | N | [A]dd File to Harpoon | harpoon.lua |
+| <M-e> | N | Toggle Harpoon Quick Menu | harpoon.lua |
+| <M-1...4> | N | Instant Jump to Marks 1-4 | harpoon.lua |
+4. Editing, Refactoring & Notetaking
+
+Text Objects & Surround (Fixed)
+| Key Chord | Mode | Action | Plugin |
+| :--- | :---: | :--- | :--- |
+| v a ) | N | Select around parentheses | mini.ai |
+| y i n q | N | Yank inside next quote | mini.ai |
+| gza / gzd | N | Add / Delete surround | mini.surround |
+| gzr / gzh | N | Replace / Highlight surround | mini.surround |
+| <C-j> / <C-k> | I | Jump forward/backward (Snippets/Brackets)| luasnip.lua |
+
+Refactoring & Notes (Obsidian)
+| Key Chord | Mode | Action | Plugin |
+| :--- | :---: | :--- | :--- |
+| <leader>re | V | [R]efactor [E]xtract Function | refactoring.lua |
+| <leader>oq | N | Obsidian: [Q]uick Switch | obsidian.lua |
+| <leader>on | N | Obsidian: [N]ew Note | obsidian.lua |
+| gf | N | Follow link under cursor | obsidian.lua |
+5. Code Intelligence & Debugging
+| Key Chord | Mode | Action | Plugin |
+| :--- | :---: | :--- | :--- |
+| grn | N | LSP: [R]e[n]ame | lsp/init.lua |
+| gra | N/X | LSP: Code [A]ction | lsp/init.lua |
+| grr | N | LSP: [G]oto [R]eferences | telescope |
+| <leader>xx | N | Toggle Workspace Diagnostics | trouble.nvim |
+| <leader>xd | N | Toggle Document Diagnostics | trouble.nvim |
+| <F5> | N | Debug: Start/Continue | nvim-dap |
+| <leader>b | N | Debug: Toggle Breakpoint | nvim-dap |
+6. User Commands & CLI Integration
+| Command | Action | Source |
+| :--- | :--- | :--- |
+| :ToolCheck | Scan for missing binaries (mise) | commands.lua |
+| :Watch <cmd> | Run command on file change (watchexec) | commands.lua |
+| :Jq | Run jq on current buffer (opens in Trouble) | commands.lua |
+| :Typos | Project-wide spell check (opens in Trouble) | format.lua |
+| <leader>gg | Open LazyGit GUI | lazygit.lua

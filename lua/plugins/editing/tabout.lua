@@ -18,6 +18,7 @@ vim.cmd('packadd tabout.nvim')
 require('tabout').setup({
   tabkey = '', -- key to trigger tabout, set to an empty string to disable
   backwards_tabkey = '', -- key to trigger backwards tabout
+  escape_key = '<C-l>', -- Use <C-l> as the deterministic escape hatch
   act_as_tab = true, -- shift content if tabout is not possible
   act_as_shift_tab = false, -- reverse shift content if tabout is not possible
   enable_backwards = true,
