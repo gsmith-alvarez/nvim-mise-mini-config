@@ -31,8 +31,13 @@ vim.api.nvim_create_autocmd('VimEnter', {
         { '<leader>d', group = '🐞 Debug' },
         { '<leader>g', group = '📦 Git' },
         { '<leader>h', group = '⚓ Git Hunks', mode = { 'n', 'v' } }, -- Dedicated to Git Hunks
+        { '<leader>o', group = '📝 Notes' },
         { '<leader>p', group = '🚀 PlatformIO' },
+        { '<leader>r', group = '🛠️ Refactor' },
         { '<leader>s', group = '🔍 Search' },
+        { '<leader>t', group = '⚙️ Toggles' },
+        { '<leader>v', group = '👁️ View' },
+        { '<leader>w', group = '🪟 Window' },
         { '<leader>x', group = '❌ Trouble' },
         { '<leader>u', group = '🎨 UI Utils' },
 
@@ -45,12 +50,12 @@ vim.api.nvim_create_autocmd('VimEnter', {
         { '<leader>th', desc = '💡 LSP: Inlay Hints' },
 
         -- [[ CODE & QUICKFIX ]]
-        { '<leader>f', desc = '[F]ormat buffer' },
-        { '<leader>q', desc = 'Open diagnostic [Q]uickfix list' },
+        { '<leader>f', desc = '✨ [F]ormat buffer' },
+        { '<leader>q', desc = '🗒️ Open diagnostic [Q]uickfix list' },
 
         -- [[ DEBUGGING ]]
-        { '<leader>b', desc = 'Toggle Breakpoint' },
-        { '<leader>B', desc = 'Set Breakpoint (Conditional)' },
+        { '<leader>b', desc = '🔴 Toggle Breakpoint' },
+        { '<leader>B', desc = '🔴 Set Breakpoint (Conditional)' },
         { '<leader>du', desc = 'Toggle DAP UI' },
         { '<leader>dr', desc = 'Toggle DAP REPL' },
 

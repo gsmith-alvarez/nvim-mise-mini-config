@@ -138,6 +138,10 @@ vim.opt.showbreak = '↪ ' -- Visual marker for wrapped lines
 -- Hides certain markup syntax elements for a cleaner look when viewing files like Markdown.
 vim.opt.conceallevel = 2
 
-
+-- [[File encoding to actually have more types of characters]]
 vim.opt.encoding = "utf-8"
 vim.opt.fileencoding = "utf-8"
+
+-- [[ Command Line Hand over to statusline.lua ]]
+vim.opt.showcmd = true
+vim.opt.showcmdloc = 'statusline'

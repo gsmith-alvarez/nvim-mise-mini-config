@@ -28,6 +28,9 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 vim.api.nvim_create_autocmd('BufEnter', {
   group = vim.api.nvim_create_augroup('mise-refresh', { clear = true }),
   callback = function()
+    if vim.bo.buftype == "terminal" or vim.bo.filetype == "minifiles" then
+      return 
+    end
     if vim.fn.executable 'mise' == 1 then
       -- You could add logic here to run 'mise env' and update vim.env if needed
       -- for more complex environments, but the PATH shim usually covers most cases.

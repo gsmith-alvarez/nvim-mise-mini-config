@@ -40,6 +40,9 @@ vim.keymap.set('n', '<leader>wo', '<C-w>o', { desc = 'Close All Other Windows' }
 vim.keymap.set('n', '<leader>w=', '<C-w>=', { desc = 'Equalize Window Sizes' })
 vim.keymap.set('n', '<leader>wx', '<C-w>x', { desc = 'Swap Windows' })
 
+-- [[ LSP Keymaps ]]
+vim.keymap.set('n', '<leader>rn', ':IncRename ', { desc = 'Rename Symbol' })
+
 -- [[ Split Navigation Keymaps ]]
 -- Keybinds to make split navigation easier.
 -- Use CTRL+<hjkl> to switch between windows (splits) without needing to

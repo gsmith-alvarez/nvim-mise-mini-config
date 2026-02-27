@@ -29,6 +29,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
     require('plugins.editing.mini.ai')
     require('plugins.editing.mini.surround')
     require('plugins.editing.mini.files')
+    require('plugins.editing.inc-rename')
 
 
     -- Self-destruct the autocommand.

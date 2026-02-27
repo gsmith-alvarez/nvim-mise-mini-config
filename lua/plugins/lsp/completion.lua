@@ -48,22 +48,34 @@ vim.api.nvim_create_autocmd('VimEnter', {
     -- Configure Blink
     require('blink.cmp').setup({
       keymap = {
+        -- Clean slate, zero interference with native Neovim keys
         preset = 'none',
+        
         ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
         ['<C-e>'] = { 'hide' },
-        ['<Tab>'] = { 'select_next', 'fallback' },
-        ['<S-Tab>'] = { 'select_prev', 'fallback' },
-        ['<CR>'] = { 'accept' },
+
+        -- The Home-Row Navigation Protocol
         ['<C-j>'] = { 'select_next', 'fallback' },
         ['<C-k>'] = { 'select_prev', 'fallback' },
+        
+        -- Accept current selection (or the first one instantly)
         ['<C-l>'] = { 'accept', 'fallback' },
+        
+        -- Instantly dismiss the menu without modifying the buffer
+        ['<C-h>'] = { 'hide', 'fallback' },
 
         ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
         ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
       },
       appearance = { nerd_font_variant = 'mono' },
       completion = {
-        list = { selection = { preselect = false, auto_insert = true } },
+        list = { 
+          selection = { 
+            -- CRITICAL CHANGES HERE:
+            preselect = true,   -- Auto-targets the first item so <C-l> works the millisecond the menu opens
+            auto_insert = false -- Prevents ghost text from bleeding into your code as you scroll
+          } 
+        },
         documentation = { auto_show = false, auto_show_delay_ms = 500 },
         menu = { draw = { columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind' } } } },
       },

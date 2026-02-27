@@ -31,11 +31,17 @@ vim.schedule(function()
       },
     },
     presets = {
-      bottom_search = false, -- use noice cmdline for search
+      bottom_search = false,
       command_palette = true,
       long_message_to_split = true,
-      inc_rename = false,
+      inc_rename = true,
       lsp_doc_border = false,
+    },
+    routes = {
+      {
+        filter = { event = 'msg_showcmd' },
+        opts = { skip = true },
+      },
     },
   })
 end)
