@@ -7,16 +7,13 @@
 -- this modular configuration isolates core Neovim keymaps into this
 -- dedicated file (`lua/core/keymaps.lua`), keeping things organized.
 
--- Clear highlights on search when pressing <Esc> in normal mode
+-- Clear highlights on search when pressing <leader><space> in normal mode
 --  See `:help hlsearch`
 -- When you search with `/something`, Neovim highlights all matches.
--- Pressing Escape clears those highlights so your screen isn't so noisy.
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+-- Pressing <leader><space> clears those highlights so your screen isn't so noisy.
+vim.keymap.set('n', '<leader><space>', '<cmd>nohlsearch<CR>', { desc = 'Clear search highlights' })
 
 -- Diagnostic keymaps
--- Opens a small window at the bottom of the screen with a list of all errors,
--- warnings, and info messages in your current file.
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -33,6 +30,15 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
+
+-- [[ Window Management Keymaps ]]
+-- Use <leader>w for window manipulation actions.
+vim.keymap.set('n', '<leader>wv', '<cmd>vsplit<CR>', { desc = 'Vertical Split' })
+vim.keymap.set('n', '<leader>ws', '<cmd>split<CR>', { desc = 'Horizontal Split' })
+vim.keymap.set('n', '<leader>wq', '<cmd>quit<CR>', { desc = 'Close Current Window' })
+vim.keymap.set('n', '<leader>wo', '<C-w>o', { desc = 'Close All Other Windows' })
+vim.keymap.set('n', '<leader>w=', '<C-w>=', { desc = 'Equalize Window Sizes' })
+vim.keymap.set('n', '<leader>wx', '<C-w>x', { desc = 'Swap Windows' })
 
 -- [[ Split Navigation Keymaps ]]
 -- Keybinds to make split navigation easier.
@@ -71,16 +77,16 @@ local arrow_warning = function()
 end
 
 -- Disable arrow keys in Normal mode
-vim.keymap.set('n', '<Up>', arrow_warning)
-vim.keymap.set('n', '<Down>', arrow_warning)
-vim.keymap.set('n', '<Left>', arrow_warning)
-vim.keymap.set('n', '<Right>', arrow_warning)
+-- vim.keymap.set('n', '<Up>', arrow_warning)
+-- vim.keymap.set('n', '<Down>', arrow_warning)
+-- vim.keymap.set('n', '<Left>', arrow_warning)
+-- vim.keymap.set('n', '<Right>', arrow_warning)
 
 -- Disable arrow keys in Visual mode
-vim.keymap.set('v', '<Up>', arrow_warning)
-vim.keymap.set('v', '<Down>', arrow_warning)
-vim.keymap.set('v', '<Left>', arrow_warning)
-vim.keymap.set('v', '<Right>', arrow_warning)
+-- vim.keymap.set('v', '<Up>', arrow_warning)
+-- vim.keymap.set('v', '<Down>', arrow_warning)
+-- vim.keymap.set('v', '<Left>', arrow_warning)
+-- vim.keymap.set('v', '<Right>', arrow_warning)
 
 -- [[ Workflow Cheatsheet Float ]]
 vim.keymap.set('n', '<leader>?', function()

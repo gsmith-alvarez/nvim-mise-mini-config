@@ -16,8 +16,8 @@ require('mini.deps').add('abecodes/tabout.nvim')
 vim.cmd('packadd tabout.nvim')
 
 require('tabout').setup({
-  tabkey = '<Tab>', -- key to trigger tabout, set to an empty string to disable
-  backwards_tabkey = '<S-Tab>', -- key to trigger backwards tabout
+  tabkey = '', -- key to trigger tabout, set to an empty string to disable
+  backwards_tabkey = '', -- key to trigger backwards tabout
   act_as_tab = true, -- shift content if tabout is not possible
   act_as_shift_tab = false, -- reverse shift content if tabout is not possible
   enable_backwards = true,

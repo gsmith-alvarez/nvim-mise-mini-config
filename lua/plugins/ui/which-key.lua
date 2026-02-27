@@ -30,17 +30,13 @@ vim.api.nvim_create_autocmd('VimEnter', {
         { '<leader>c', group = '💻 Code' },
         { '<leader>d', group = '🐞 Debug' },
         { '<leader>g', group = '📦 Git' },
+        { '<leader>h', group = '⚓ Git Hunks', mode = { 'n', 'v' } }, -- Dedicated to Git Hunks
         { '<leader>p', group = '🚀 PlatformIO' },
-        { '<leader>r', group = '♻️ Refactor' },
         { '<leader>s', group = '🔍 Search' },
         { '<leader>x', group = '❌ Trouble' },
         { '<leader>u', group = '🎨 UI Utils' },
 
-        -- HOMEDIR ERGONOMICS: Home-row optimization for Harpoon and Git.
-        { '<leader>h', group = '⚓ Hunk / Harpoon', mode = { 'n', 'v' } },
-
         -- [[ TOGGLES & DASHBOARD ]]
-        { '<leader>t', group = '🪄 Toggle' },
         { '<leader>tm', desc = '📝 Markdown Preview' },
         { '<leader>ts', desc = '🎧 Spotify Player' },
         { '<leader>tp', desc = '📊 Process Monitor' },
@@ -86,8 +82,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
         { '<leader>cd', desc = '[C]hange [D]irectory (Zoxide)' },
         
         -- [[ UI UTILITIES ]]
-        { '<leader>y', desc = '🖼️ Yazi File Manager' },
-        -- <leader>u for Zenith and <leader>z for Cheatsheet removed as per instruction.
+        { '<leader>y', desc = '🖼️ Yazi File Manager' }
       },
     })
     

@@ -43,7 +43,17 @@ vim.keymap.set('n', '<leader>xx', function()
     vim.notify('Trouble not loaded yet, please wait a moment and try again.', vim.log.levels.WARN)
     return
   end
-  vim.cmd('Trouble diagnostics toggle')
+  vim.cmd('Trouble diagnostics toggle') -- Toggle workspace diagnostics
   -- Hotswap
-  vim.keymap.set('n', '<leader>xx', '<cmd>Trouble diagnostics toggle<cr>', { desc = 'Diagnostics (Trouble)' })
-end, { desc = 'Diagnostics (Trouble) (loads on BufEnter)' })
+  vim.keymap.set('n', '<leader>xx', '<cmd>Trouble diagnostics toggle<cr>', { desc = 'Toggle Workspace Diagnostics (Trouble)' })
+end, { desc = 'Toggle Workspace Diagnostics (Trouble) (loads on BufEnter)' })
+
+vim.keymap.set('n', '<leader>xd', function()
+  if not require('trouble') then return end
+  vim.cmd('Trouble diagnostics toggle filter.buf=0') -- Toggle document diagnostics
+end, { desc = 'Toggle Document Diagnostics (Trouble)' })
+
+vim.keymap.set('n', '<leader>xq', function()
+  if not require('trouble') then return end
+  vim.cmd('Trouble quickfix toggle')
+end, { desc = 'Toggle Quickfix in Trouble' })

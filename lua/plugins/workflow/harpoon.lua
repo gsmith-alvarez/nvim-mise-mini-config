@@ -23,40 +23,39 @@ local function load_harpoon()
 end
 
 -- Stub for adding a file
-vim.keymap.set('n', '<leader>a', function()
+vim.keymap.set('n', '<M-a>', function()
   load_harpoon()
   require('harpoon.mark').add_file()
   vim.notify('Harpoon: Marked file', vim.log.levels.INFO)
   -- Hotswap
-  vim.keymap.set('n', '<leader>a',
+  vim.keymap.set('n', '<M-a>',
     function()
       require('harpoon.mark').add_file()
       vim.notify('Harpoon: Marked file', vim.log.levels.INFO)
     end, { desc = 'Harpoon: Mark file' })
 end, { desc = 'Harpoon: Mark file (loads on first use)' })
 
--- Stub for the UI toggle (was <C-e>, now using a leader key for consistency)
-vim.keymap.set('n', '<leader>hc', function()
+-- Stub for the UI toggle (now using Alt-e)
+vim.keymap.set('n', '<M-e>', function()
   load_harpoon()
   require('harpoon.ui').toggle_quick_menu()
   -- Hotswap
-  vim.keymap.set('n', '<leader>hc', function() require('harpoon.ui').toggle_quick_menu() end,
+  vim.keymap.set('n', '<M-e>', function() require('harpoon.ui').toggle_quick_menu() end,
     { desc = 'Harpoon: Toggle UI' })
 end, { desc = 'Harpoon: Toggle UI (loads on first use)' })
 
 -- [[ Harpoon: Hotswapped Ctrl-Number Navigation ]]
--- We use Ctrl because Zellij's 'normal' mode is letting Ctrl pass through
--- (except for the ones we explicitly hijacked like Ctrl-h/j/k/l for smart-splits)
+-- We use Alt (Meta) for instant jumping.
 
 for i = 1, 4 do
-  local map_key = '<C-' .. i .. '>' -- Switched from <M-> to <C->
+  local map_key = '<M-' .. i .. '>'
   vim.keymap.set('n', map_key, function()
     load_harpoon()
     require('harpoon.ui').nav_file(i)
 
     -- HOTSWAP: Overwrite all stubs with direct calls
     for j = 1, 4 do
-      vim.keymap.set('n', '<C-' .. j .. '>', function()
+      vim.keymap.set('n', '<M-' .. j .. '>', function()
         require('harpoon.ui').nav_file(j)
       end, { desc = 'Harpoon: Go to mark ' .. j })
     end

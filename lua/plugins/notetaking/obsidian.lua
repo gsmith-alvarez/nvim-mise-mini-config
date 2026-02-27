@@ -18,11 +18,12 @@ function M.setup()
   -- 2. Imperative Dependency Fetch via mini.deps
   require('mini.deps').add({
     source = 'epwalsh/obsidian.nvim',
-    depends = { 'nvim-lua/plenary.nvim' }
+    depends = { 'nvim-lua/plenary.nvim', 'echasnovski/mini.pick' } -- Added mini.pick dependency
   })
 
   -- 3. Execute the Setup Logic
   require("obsidian").setup({
+    ui = { enable = false }, -- Disable Obsidian UI to prevent conflicts
     workspaces = {
       {
         name = "personal",
@@ -38,6 +39,10 @@ function M.setup()
       ["gf"] = {
         action = function() return require("obsidian").util.gf_passthrough() end,
         opts = { noremap = false, expr = true, buffer = true, desc = "Obsidian: Follow Link" },
+      },
+      ["<leader>of"] = {
+        action = function() return require("obsidian").util.gf_passthrough() end,
+        opts = { noremap = false, expr = true, buffer = true, desc = "Obsidian: [F]ollow Link" },
       },
       ["<leader>ov"] = {
         action = function() vim.cmd("ObsidianFollowLink vsplit") end,

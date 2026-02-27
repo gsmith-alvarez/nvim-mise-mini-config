@@ -26,19 +26,21 @@ function M.setup()
   -- 4. Map the traversal keys
   local opts = { buffer = true, silent = true }
 
-  vim.keymap.set({ "i", "s", "x" }, "<Tab>", function()
+  vim.keymap.set({ "i", "s" }, "<C-j>", function()
     if ls.expand_or_jumpable() then
       ls.expand_or_jump()
     else
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "n", true)
+      -- Fallback for bracket/parentheses exit if not a snippet
+      -- This will require integration with a bracket-matching/autoclose plugin's jump function
+      -- For now, we'll keep it simple and focus on snippets.
     end
-  end, vim.tbl_extend("force", opts, { desc = "LuaSnip: Expand or Jump" }))
+  end, vim.tbl_extend("force", opts, { desc = "LuaSnip: Expand or Jump (Forward)" }))
 
-  vim.keymap.set({ "i", "s", "x" }, "<S-Tab>", function()
+  vim.keymap.set({ "i", "s" }, "<C-k>", function()
     if ls.jumpable(-1) then
       ls.jump(-1)
     end
-  end, vim.tbl_extend("force", opts, { desc = "LuaSnip: Jump to previous node" }))
+  end, vim.tbl_extend("force", opts, { desc = "LuaSnip: Jump to previous node (Backward)" }))
 end
 
 return M

@@ -129,8 +129,10 @@ This configuration uses a strictly categorized modular structure to separate cor
   - `mini.diff`: Git diff markers in the gutter and toggleable diff overlay. 
   - `mini.statusline`: High-performance statusline with `mise` environment status. 
   - `mini.tabline`: Minimalist tabline.
-  - `mini.clue`: Keymap hint system replacing `which-key`. 
+  - `mini.files`: Fast, tree-style file explorer.
+  - `mini.pick`: Omnisearch and Obsidian integration.
 - **`ThePrimeagen/refactoring.nvim`**: Advanced, automated codebase refactoring (extract, inline, etc.). Deferred via keymap stubs.
+- **`ThePrimeagen/harpoon`**: Instant file marking and jumping. Uses Alt (Meta) keys.
 
 ### Telescope (Fuzzy Finding)
 - **`nvim-telescope/telescope.nvim`**: Highly extensible fuzzy finder for files, strings, and LSP symbols. Deferred via JIT keymap stubs. Keymaps: `<leader>ff` (Find Files), `<leader>rr` (LSP References), `<leader>gd` (LSP Definitions), `<leader>ws` (LSP Workspace Symbols).
@@ -145,14 +147,10 @@ This configuration uses a strictly categorized modular structure to separate cor
 ### UI & Aesthetics
 - **`catppuccin/nvim` (Mocha)**: Primary high-contrast, modern colorscheme. Immediately loaded.
 - **`folke/noice.nvim`**: Modern, high-contrast floating UI for the command line, search, and messages. Loaded on `VimEnter`.
-- **`folke/which-key.nvim`**: Popup keybinding discovery menu. Deferred via `VimEnter` autocmd. Keymap: `<leader>?` (Show Cheatsheet).
-- **`folke/trouble.nvim`**: List/panel for all errors, warnings, and TODOs. Deferred via `BufEnter` autocmd. Keymap: `<leader>xx`.
-- **`nvim-treesitter/nvim-treesitter`**: AST parser for superior syntax highlighting. Deferred via `BufReadPre`. 
-- **`mikavilpas/yazi.nvim`**: Rust-based terminal file manager. Keymap: `<leader>y`.
+- **`folke/which-key.nvim`**: Popup keybinding discovery menu. Deferred via `VimEnter` autocmd. Keymap: `<leader>?` (Show Workflow Cheatsheet).
 
 ### Utilities & Diagnostics (CLI Integrations)
-- **`NMAC427/guess-indent.nvim`**: Detects and applies the correct indentation size. Deferred via `BufReadPre`. 
-- **`sudormrfbin/cheatsheet.nvim`**: Quick-reference cheatsheet. Keymap: `<leader>z`.
+- **`NMAC427/guess-indent.nvim`**: Detects and applies the correct indentation size. Deferred via `BufReadPre`.
 - **`gojq` (`:Jq`)**: Live scratchpad to query JSON. Command: `:Jq <query>`.
 - **`ouch` (Transparent Archive Explorer)**: Intercepts archive file openings (`.zip`, `.tar.gz`, etc.) and displays contents. Automatic.
 - **`sd` (`:Sd`)**: Surgical regex find-and-replace. Command: `:Sd <find> <replace>`.
@@ -163,6 +161,8 @@ This configuration uses a strictly categorized modular structure to separate cor
 - **`podman-tui` (`<leader>ti`)**: Floating TUI for container management. Keymap: `<leader>ti`.
 - **`jless` (`:Jless`)**: Structural JSON viewer. Command: `:Jless`.
 - **`typos-cli` (`:Typos`)**: Project-wide spell checker. Command: `:Typos`.
+- **`bottom` (`<leader>vp`)**: CLI process monitor.
+- **`spotify_player` (`<leader>vs`)**: CLI Spotify player.
 
 ### Debugging (DAP)
 - **`mfussenegger/nvim-dap`**: Core Debug Adapter Protocol client. Keymap: `<F5>` (Start/Continue), `<leader>b` (Toggle Breakpoint), `<leader>du` (Toggle UI).

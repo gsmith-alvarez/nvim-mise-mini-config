@@ -76,18 +76,18 @@ vim.api.nvim_create_autocmd('VimEnter', {
         local map = function(keys, func, desc, mode)
           vim.keymap.set(mode or 'n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
         end
-        map('grn', vim.lsp.buf.rename, '[R]e[n]ame')
-        map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
+        map('<leader>cr', vim.lsp.buf.rename, '[R]e[n]ame')
+        map('<leader>ca', vim.lsp.buf.code_action, 'Code [A]ctions', { 'n', 'x' })
         
-        -- Telescope-dependent mappings require Telescope to be loaded.
-        map('grr', function() require('telescope.builtin').lsp_references() end, '[G]oto [R]eferences')
-        map('gri', function() require('telescope.builtin').lsp_implementations() end, '[G]oto [I]mplementation')
-        map('grd', function() require('telescope.builtin').lsp_definitions() end, '[G]oto [D]efinition')
-        map('grt', function() require('telescope.builtin').lsp_type_definitions() end, '[G]oto [T]ype Definition')
-        map('gO', function() require('telescope.builtin').lsp_document_symbols() end, 'Open Document Symbols')
-        map('gW', function() require('telescope.builtin').lsp_dynamic_workspace_symbols() end, 'Open Workspace Symbols')
+        -- Telescope-dependent mappings
+        map('<leader>cl', function() require('telescope.builtin').lsp_references() end, '[C]ode [L]SP [R]eferences')
+        map('<leader>ci', function() require('telescope.builtin').lsp_implementations() end, '[C]ode [I]mplementations')
+        map('<leader>cd', function() require('telescope.builtin').lsp_definitions() end, '[C]ode [D]efinition')
+        map('<leader>ct', function() require('telescope.builtin').lsp_type_definitions() end, '[C]ode [T]ype Definition')
+        map('<leader>co', function() require('telescope.builtin').lsp_document_symbols() end, 'Open Document Symbols')
+        map('<leader>cw', function() require('telescope.builtin').lsp_dynamic_workspace_symbols() end, 'Open Workspace Symbols')
         
-        map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+        map('<leader>cD', vim.lsp.buf.declaration, '[C]ode [D]eclaration')
         
         local client = vim.lsp.get_client_by_id(event.data.client_id)
         if client and client.server_capabilities.documentHighlightProvider then
@@ -96,7 +96,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
           vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, { buffer = event.buf, group = augroup, callback = vim.lsp.buf.clear_references })
         end
         if client and client.server_capabilities.inlayHintProvider then
-          map('<leader>th', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf })) end, '[T]oggle Inlay [H]ints')
+          map('<leader>ch', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf })) end, '[C]ode Inlay [H]ints')
         end
       end,
     })

@@ -112,4 +112,8 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   desc = 'Synchronously format buffer on save using native APIs',
 })
 
+vim.keymap.set({'n', 'v'}, '<leader>cf', function()
+  require('core.format').autoformat()
+end, { desc = '[F]ormat buffer' })
+
 return M

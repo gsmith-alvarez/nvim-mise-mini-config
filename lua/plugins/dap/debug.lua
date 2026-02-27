@@ -48,13 +48,13 @@ local function load_dap()
 end
 
 -- Breakpoint stub is ALWAYS available
-vim.keymap.set('n', '<leader>b', function()
+vim.keymap.set('n', '<leader>db', function()
   load_dap()
   require('dap').toggle_breakpoint()
 end, { desc = 'Debug: Toggle Breakpoint' })
 
--- F5 Continue stub
-vim.keymap.set('n', '<F5>', function()
+-- <leader>dc Continue stub
+vim.keymap.set('n', '<leader>dc', function()
   load_dap()
   require('dap').continue()
 end, { desc = 'Debug: Start/Continue' })
@@ -69,3 +69,18 @@ vim.keymap.set('n', '<leader>dr', function()
   load_dap()
   require('dap').repl.toggle()
 end, { desc = 'Debug: Toggle REPL' })
+
+vim.keymap.set('n', '<leader>do', function()
+  load_dap()
+  require('dap').step_over()
+end, { desc = 'Debug: Step Over' })
+
+vim.keymap.set('n', '<leader>di', function()
+  load_dap()
+  require('dap').step_into()
+end, { desc = 'Debug: Step Into' })
+
+vim.keymap.set('n', '<leader>dS', function()
+  load_dap()
+  require('dap').step_out()
+end, { desc = 'Debug: Step Out' })

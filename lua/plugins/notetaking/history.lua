@@ -9,6 +9,11 @@ require('mini.visits').setup({
 	track = { event = 'BufEnter', delay = 0 },
 })
 
+-- Add mini.pick dependency and setup for Omnisearch
+require('mini.deps').add('echasnovski/mini.pick')
+local minipick = require('mini.pick')
+minipick.setup()
+
 -- 2. Ensure mini.extra is loaded to pipe visits into mini.pick
 require('mini.deps').add('echasnovski/mini.extra')
 require('mini.extra').setup()
@@ -20,7 +25,7 @@ local map = vim.keymap.set
 -- This leverages the `mise`-managed `ripgrep` binary for sub-millisecond full-text indexing.
 -- Graceful Degradation: If `rg` is missing, mini.pick handles the error gracefully via its native health checks.
 map('n', '<leader>so', function()
-	MiniPick.builtin.grep_live()
+	minipick.builtin.grep_live()
 end, { desc = '[S]earch [O]mni (Ripgrep Full Text)' })
 
 -- [RECENT FILES] Pulls up the mini.visits interface via mini.pick.

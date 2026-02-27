@@ -14,26 +14,5 @@ EXECUTION STRATEGY: Deferred loading via keymap stubs.
 
 -- Zenith and CodeGPT related code has been removed.
 
-local loaded_cheatsheet = false
-local function load_cheatsheet()
-  if loaded_cheatsheet then return end
-  local MiniDeps = require('mini.deps')
+-- All cheatsheet logic moved to lua/core/settings/keymaps.lua for <leader>?
 
-  MiniDeps.add('sudormrfbin/cheatsheet.nvim')
-  -- Force load cheatsheet into runtimepath.
-  vim.cmd('packadd cheatsheet.nvim')
-
-  -- NOTE: Telescope needs to be set up before cheatsheet if cheatsheet uses Telescope pickers.
-  -- We will not call `require('telescope').setup()` here as Telescope's own stub handles it.
-  -- We only need to ensure its modules are in `package.path`.
-
-  require('cheatsheet').setup()
-  loaded_cheatsheet = true
-end
-
-vim.keymap.set('n', '<leader>z', function()
-  load_cheatsheet()
-  vim.cmd('Cheatsheet')
-  -- Hotswap the keymap
-  vim.keymap.set('n', '<leader>z', '<cmd>Cheatsheet<CR>', { desc = 'Cheatsheet' })
-end, { desc = 'Cheatsheet (loads on first use)' })

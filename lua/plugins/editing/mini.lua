@@ -30,6 +30,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
     require('plugins.editing.mini.surround')
     require('plugins.editing.mini.files')
 
+
     -- Self-destruct the autocommand.
     vim.api.nvim_clear_autocmds({ group = 'MiniDeps_MiniNvim' })
   end,

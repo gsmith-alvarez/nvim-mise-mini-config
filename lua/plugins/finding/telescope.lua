@@ -88,17 +88,16 @@ end
 -- Keymap Stubs (registered at boot)
 local telescope_keys = {
   { 'n', '<leader>cd', function() require('telescope').extensions.zoxide.list() end, '[C]hange [D]irectory (Zoxide)' },
-  { 'n', '<leader>ff', 'find_files', '[F]ind [F]iles' },
-  { 'n', '<leader>sh', 'help_tags', '[S]earch [H]elp' },
-  { 'n', '<leader>sk', 'keymaps', '[S]earch [K]eymaps' },
-  { 'n', '<leader>ss', 'builtin', '[S]earch [S]elect Telescope' },
-  { 'n', '<leader>sw', 'grep_string', '[S]earch current [W]ord' },
-  { 'n', '<leader>sg', 'live_grep', '[S]earch by [G]rep' },
-  { 'n', '<leader>sd', 'diagnostics', '[S]earch [D]iagnostics' },
-  { 'n', '<leader>sr', 'resume', '[S]earch [R]esume' },
-  { 'n', '<leader>s.', 'oldfiles', '[S]earch Recent Files' },
-  { 'n', '<leader><leader>', 'buffers', '[ ] Find existing buffers' },
-  { 'n', '<leader>sn', function() require('telescope.builtin').find_files({ cwd = vim.fn.stdpath('config') }) end, '[S]earch [N]eovim files' },
+  { 'n', '<leader>ff', 'find_files', '[F]ind [F]iles (Telescope)' },
+  { 'n', '<leader>fr', 'oldfiles', '[F]ind [R]ecent Files (Telescope)' },
+  { 'n', '<leader>fb', 'buffers', '[F]ind [B]uffers (Telescope)' },
+  { 'n', '<leader>sg', 'live_grep', '[S]earch by [G]rep (Telescope)' },
+  { 'n', '<leader>sw', 'grep_string', '[S]earch current [W]ord (Telescope)' },
+  { 'n', '<leader>sd', 'diagnostics', '[S]earch [D]iagnostics (Telescope)' },
+  { 'n', '<leader>sr', 'resume', '[S]earch [R]esume (Telescope)' },
+  { 'n', '<leader>sl', function() require('telescope.builtin').current_buffer_fuzzy_find() end, '[S]earch Line in Files (Telescope)' },
+  { 'n', '<leader>uh', 'help_tags', '[H]elp Tags (Telescope)' },
+  { 'n', '<leader>uk', 'keymaps', '[K]eymaps (Telescope)' },
 }
 
 for _, k in ipairs(telescope_keys) do

@@ -83,7 +83,7 @@ create_stub('<leader>gg', function()
 end, 'Toggle [G]it [G]ui (lazygit)')
 
 -- Stub for Process Monitor (btm) (<leader>tp)
-create_stub('<leader>tp', function()
+create_stub('<leader>vp', function()
   local btm_bin = utils.mise_shim('btm')
   if not btm_bin then
     utils.soft_notify('btm (bottom) missing. Run: mise install btm', vim.log.levels.WARN)
@@ -103,8 +103,8 @@ create_stub('<leader>tp', function()
   btm:toggle()
 end, 'Toggle [P]rocess Monitor')
 
--- Stub for Glow Markdown Preview (<leader>tm)
-create_stub('<leader>tm', function()
+-- Stub for Glow Markdown Preview (<leader>vg)
+create_stub('<leader>vg', function()
   local glow_bin = utils.mise_shim('glow')
   if not glow_bin then
     utils.soft_notify('Glow missing. Run: mise install glow', vim.log.levels.WARN)
@@ -131,8 +131,8 @@ create_stub('<leader>tm', function()
   glow:toggle()
 end, 'Toggle [M]arkdown Preview (glow)')
 
--- Stub for Spotify Player (<leader>ts)
-create_stub('<leader>ts', function()
+-- Stub for Spotify Player (<leader>vs)
+create_stub('<leader>vs', function()
   local spotify_bin = utils.mise_shim('spotify_player')
   if not spotify_bin then
     utils.soft_notify('Spotify Player missing. Run: mise install spotify_player', vim.log.levels.WARN)
@@ -151,8 +151,8 @@ create_stub('<leader>ts', function()
   spotify:toggle()
 end, 'Toggle [S]potify Player')
 
--- Stub for Aider AI Chat (<leader>ta)
-create_stub('<leader>ta', function()
+-- Stub for Aider AI Chat (<leader>va)
+create_stub('<leader>va', function()
   local aider_bin = utils.mise_shim('aider')
   if not aider_bin then
     utils.soft_notify('Aider missing. Run: mise install aider', vim.log.levels.WARN)
@@ -179,8 +179,8 @@ create_stub('<leader>ta', function()
   aider:toggle()
 end, 'Toggle [A]ider AI Chat')
 
--- Stub for Podman-TUI Infrastructure Control (<leader>ti)
-create_stub('<leader>ti', function()
+-- Stub for Podman-TUI Infrastructure Control (<leader>vi)
+create_stub('<leader>vi', function()
   local podman_tui_bin = utils.mise_shim('podman-tui')
   if not podman_tui_bin then
     utils.soft_notify('Podman-TUI missing. Run: mise install podman-tui', vim.log.levels.WARN)

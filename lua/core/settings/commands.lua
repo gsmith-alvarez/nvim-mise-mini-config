@@ -93,6 +93,15 @@ vim.api.nvim_create_user_command('ToolCheck', function()
   vim.bo[buf].modifiable = false
 end, { desc = 'Audit required dependencies and suggest installation steps' })
 
+vim.keymap.set('n', '<leader>ut', '<cmd>ToolCheck<CR>', { desc = '[T]ool [C]heck (Mise)' })
+
+-- [[ User Command Keymaps for Views/External ]]
+vim.keymap.set('n', '<leader>vq', '<cmd>Jq<CR>', { desc = '[J]q Live Scratchpad' })
+vim.keymap.set('n', '<leader>sr', '<cmd>Sd<CR>', { desc = '[S]earch & [R]eplace (Sd)' })
+vim.keymap.set('n', '<leader>vx', '<cmd>Xh<CR>', { desc = '[X]h HTTP Client' })
+vim.keymap.set('n', '<leader>vw', '<cmd>Watch<CR>', { desc = '[W]atchexec Continuous Daemon' })
+vim.keymap.set('n', '<leader>vj', '<cmd>Jless<CR>', { desc = '[J]less JSON Viewer' })
+
 -- [[ GoJQ Live Scratchpad ]]
 -- This command pipes the current buffer into gojq and displays the result in a split.
 -- It turns Neovim into a native, high-performance JSON query tool.
@@ -121,15 +130,21 @@ vim.api.nvim_create_user_command('Jq', function(opts)
     return
   end
 
-  -- Open a vertical split and dump the processed JSON output
-  vim.cmd('vnew')
-  local buf = vim.api.nvim_get_current_buf()
-  vim.bo[buf].filetype = 'json'
-  vim.bo[buf].buftype = 'nofile' -- Marks buffer as a scratchpad (don't prompt to save)
-  vim.bo[buf].bufhidden = 'wipe' -- Destroy buffer completely when closed
-  
+  -- Populate native quickfix list first
+  local qf_items = {}
   local output_lines = vim.split(obj.stdout, '\n')
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, output_lines)
+  for i, line in ipairs(output_lines) do
+    table.insert(qf_items, { text = line, lnum = i, filename = 'gojq-output' })
+  end
+  vim.fn.setqflist(qf_items, 'r')
+
+  -- Then open in Trouble or native quickfix
+  local has_trouble, _ = pcall(require, 'trouble')
+  if has_trouble then
+    vim.cmd('Trouble quickfix toggle')
+  else
+    vim.cmd('copen')
+  end
   vim.notify('JQ Query: ' .. query, vim.log.levels.INFO)
 end, { nargs = '?', desc = 'Run gojq on current buffer' })
 
@@ -229,11 +244,18 @@ vim.api.nvim_create_user_command('Typos', function()
 
   if #qf_items > 0 then
     vim.fn.setqflist(qf_items, 'r')
-    vim.cmd('copen') -- Open the quickfix window automatically
+    local has_trouble, _ = pcall(require, 'trouble')
+    if has_trouble then
+        vim.cmd('Trouble quickfix toggle')
+    else
+        vim.cmd('copen') -- Open the quickfix window automatically
+    end
   else
     vim.notify('No typos found!', vim.log.levels.INFO)
   end
 end, { desc = 'Populate Quickfix with project typos' })
+
+vim.keymap.set('n', '<leader>xt', '<cmd>Typos<CR>', { desc = 'Run Project [T]ypos' })
 
 -- [[ Watchexec Continuous Daemon ]]
 -- Marries watchexec with a horizontal toggleterm for a zero-friction TDD loop.
