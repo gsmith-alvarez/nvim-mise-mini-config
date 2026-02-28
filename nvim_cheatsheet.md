@@ -96,6 +96,9 @@ A quick reference for the keybindings and commands in this configuration.
 | `<leader>xd` | N | Toggle Document Diagnostics | `trouble.nvim` |
 | `<F5>` | N | Debug: Start/Continue | `nvim-dap` |
 | `<leader>b` | N | Debug: Toggle Breakpoint | `nvim-dap` |
+| '<leader>cr' | N | Runs code in Zellij split | 'zellij' |
+| '<leader>cx' | N | Get output code in Zellij Split | 'zellij |
+
 
 ---
 
