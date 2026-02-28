@@ -1,47 +1,71 @@
---- [[ Noice UI Enhancement ]]
---- Replaces the default Neovim command and message UI with a modern, clean interface.
+-- [[ NOICE: Message & Command UI Replacement ]]
+-- Domain: UI & Aesthetics
+--
+-- PHILOSOPHY: Immediate UI Interception
+-- Replaces Neovim's default command line, message area, and popups with 
+-- a modern, unobtrusive UI. Because this plugin intercepts core editor 
+-- messaging, it must load synchronously during the UI boot phase to prevent 
+-- native UI "flashing" or missed startup warnings.
 
---[[
-EXECUTION STRATEGY: Scheduled Immediate Load.
-- Register and load dependencies immediately.
-- Use vim.schedule to ensure setup runs as soon as the core editor finishes its current task.
-- This ensures Noice is active as early as possible without blocking the main boot thread.
---]]
+local M = {}
+local utils = require('core.utils')
 
-local MiniDeps = require('mini.deps')
-MiniDeps.add('folke/noice.nvim')
-MiniDeps.add('MunifTanjim/nui.nvim')
-MiniDeps.add('rcarriga/nvim-notify')
+local ok, err = pcall(function()
+  -- 1. Safely resolve dependencies using the dependency graph
+  MiniDeps.add({
+    source = 'folke/noice.nvim',
+    depends = {
+      'MunifTanjim/nui.nvim',
+      'rcarriga/nvim-notify',
+    }
+  })
 
--- Ensure plugins are loaded into runtimepath
-vim.cmd('packadd noice.nvim')
-vim.cmd('packadd nui.nvim')
-vim.cmd('packadd nvim-notify')
+  -- 2. Configure the Base Notification Engine
+  -- Noice relies on nvim-notify for its floating message boxes. We set 
+  -- sane defaults here to prevent CPU spikes from heavy animations.
+  require('notify').setup({
+    timeout = 3000,
+    render = "compact",
+    stages = "static", 
+    top_down = false,
+  })
 
-vim.schedule(function()
-  local ok, noice = pcall(require, 'noice')
-  if not ok then return end
+  -- Immediately hijack the global notifier
+  vim.notify = require('notify')
 
-  noice.setup({
+  -- 3. Configure the Core Noice Engine
+  require('noice').setup({
     lsp = {
       override = {
+        -- Override markdown rendering so that LSP hover and signature help 
+        -- utilize the Noice formatting engine.
         ['vim.lsp.util.convert_input_to_markdown_lines'] = true,
         ['vim.lsp.util.stylize_markdown'] = true,
-        ['cmp.entry.get_documentation'] = true,
       },
     },
     presets = {
-      bottom_search = false,
-      command_palette = true,
-      long_message_to_split = true,
-      inc_rename = true,
-      lsp_doc_border = false,
+      bottom_search = false,        -- Use a classic bottom cmdline for search
+      command_palette = true,       -- Position the cmdline and popupmenu together
+      long_message_to_split = true, -- Send long error traces to a split window
+      inc_rename = true,            -- Seamless integration with our inc-rename.nvim proxy
+      lsp_doc_border = false,       -- Clean borders for hover docs
     },
     routes = {
       {
+        -- Suppress the 'showcmd' events (e.g., typing partial keystrokes) 
+        -- to keep the command area perfectly clean.
         filter = { event = 'msg_showcmd' },
         opts = { skip = true },
       },
     },
   })
 end)
+
+if not ok then
+  -- If Noice fails, Neovim naturally falls back to its native message UI.
+  -- We log the failure securely without disrupting the editor session.
+  utils.soft_notify('Noice UI failed to initialize: ' .. err, vim.log.levels.ERROR)
+end
+
+-- THE CONTRACT: Return the module to satisfy the UI Orchestrator
+return M

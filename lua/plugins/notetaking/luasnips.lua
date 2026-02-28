@@ -6,41 +6,37 @@
 local M = {}
 
 function M.setup()
-  -- 1. Imperatively fetch the engine ONLY when needed
+  -- 1. Infrastructure Registration
   require('mini.deps').add({ source = 'L3MON4D3/LuaSnip' })
-
   local ls = require("luasnip")
 
-  -- 2. Configure the aggressive auto-expansion
+  -- 2. Performance & Region Tracking
   ls.config.set_config({
     history = true,
     updateevents = "TextChanged,TextChangedI",
     enable_autosnippets = true,
+    region_check_events = "InsertEnter,CursorMoved,CursorMovedI",
+    delete_check_events = "TextChanged,InsertLeave",
   })
 
-  -- 3. Require the inert payload file and inject it into the target filetypes
-  local latex_snippets = require("snippets.latex").retrieve()
-  ls.add_snippets("markdown", latex_snippets)
-  ls.add_snippets("tex", latex_snippets)
+  -- 3. THE ATOMIC HANDSHAKE:
+  -- Load snippets from the lua/snippets directory using the native loader.
+  require("luasnip.loaders.from_lua").lazy_load({ paths = { vim.fn.stdpath("config") .. "/lua/snippets" } })
 
-  -- 4. Map the traversal keys
-  local opts = { buffer = true, silent = true }
+  -- 4. Unified Traversal (Logic unchanged, remains robust)
+  local opts = { silent = true }
 
   vim.keymap.set({ "i", "s" }, "<C-j>", function()
     if ls.expand_or_jumpable() then
       ls.expand_or_jump()
-    else
-      -- Fallback for bracket/parentheses exit if not a snippet
-      -- This will require integration with a bracket-matching/autoclose plugin's jump function
-      -- For now, we'll keep it simple and focus on snippets.
     end
-  end, vim.tbl_extend("force", opts, { desc = "LuaSnip: Expand or Jump (Forward)" }))
+  end, { desc = "Snippet: Expand/Jump Forward" })
 
   vim.keymap.set({ "i", "s" }, "<C-k>", function()
     if ls.jumpable(-1) then
       ls.jump(-1)
     end
-  end, vim.tbl_extend("force", opts, { desc = "LuaSnip: Jump to previous node (Backward)" }))
+  end, { desc = "Snippet: Jump Backward" })
 end
 
 return M

@@ -1,47 +1,68 @@
---- [[ Refactoring Engine ]]
---- Provides language-aware refactoring tools powered by Treesitter.
+-- [[ REFACTORING.NVIM: Codebase Transformation ]]
+-- Domain: Text Manipulation & Refactoring
+--
+-- PHILOSOPHY: Action-Driven JIT Execution
+-- Refactoring is a heavy, AST-dependent (Abstract Syntax Tree) operation. 
+-- We sandbox this entirely. The engine only spins up the exact moment 
+-- you attempt to extract, inline, or select a refactor block.
 
---[[
-EXECUTION STRATEGY: Deferred loading via keymap stubs.
-- Refactoring is an explicit action, making it perfect for on-demand loading.
-- We create keymap stubs for all refactoring actions.
-- The first time a key is pressed, the plugin is loaded, and all stubs
-  are hotswapped to direct calls.
---]]
+local M = {}
+local utils = require('core.utils')
 
 local loaded = false
-local function load_refactoring()
+
+-- [[ The JIT Engine ]]
+local function bootstrap_refactoring()
   if loaded then return true end
-  
-  -- UNCONVENTIONAL LEVERAGE: Dependency guard.
-  if not vim.g.treesitter_loaded then
-    vim.notify('Treesitter not loaded yet, please wait a moment.', vim.log.levels.WARN)
+
+  -- Treesitter Dependency Guard
+  -- Treesitter must be active to parse the AST for safe refactoring.
+  -- We fail gracefully if the buffer hasn't attached to a parser yet.
+  local status_ok, _ = pcall(require, 'nvim-treesitter')
+  if not status_ok then
+    utils.soft_notify('Treesitter is not loaded. Refactoring requires AST mapping.', vim.log.levels.WARN)
     return false
   end
-  
-  require('mini.deps').add('nvim-lua/plenary.nvim')
-  require('mini.deps').add('ThePrimeagen/refactoring.nvim')
-  require('refactoring').setup()
+
+  local ok, err = pcall(function()
+    -- Plenary is intentionally omitted here because it is globally injected 
+    -- during Phase 1 by `lua/core/libs.lua`.
+    require('mini.deps').add({
+      source = 'ThePrimeagen/refactoring.nvim',
+      depends = { 'nvim-treesitter/nvim-treesitter' }
+    })
+    
+    require('refactoring').setup({})
+  end)
+
+  if not ok then
+    utils.soft_notify('Refactoring engine failed to initialize: ' .. err, vim.log.levels.ERROR)
+    return false
+  end
+
   loaded = true
   return true
 end
 
-local refactor_keys = {
-  { '<leader>rr', function() require('refactoring').select_refactor() end, 'Select Refactor' },
-  { '<leader>re', function() require('refactoring').extract_var() end, 'Extract Variable' },
-  { '<leader>rf', function() require('refactoring').extract_function() end, 'Extract Function' },
-  { '<leader>rv', function() require('refactoring').extract_var_to_file() end, 'Extract Variable to File' },
-  { '<leader>ri', function() require('refactoring').inline_var() end, 'Inline Variable' },
+-- [[ THE PROXY KEYMAPS ]]
+-- We define a clean table of operations. The proxy evaluates a single 
+-- boolean (loaded == true) on subsequent calls, which evaluates in microseconds.
+
+local refactors = {
+  { keys = '<leader>rr', action = 'select_refactor',      modes = { 'n', 'x' }, desc = 'Select Refactor (UI)' },
+  { keys = '<leader>re', action = 'extract_var',          modes = { 'x' },      desc = 'Extract Variable' },
+  { keys = '<leader>rf', action = 'extract_function',     modes = { 'x' },      desc = 'Extract Function' },
+  { keys = '<leader>rv', action = 'extract_var_to_file',  modes = { 'x' },      desc = 'Extract Variable to File' },
+  { keys = '<leader>ri', action = 'inline_var',           modes = { 'n', 'x' }, desc = 'Inline Variable' },
 }
 
-for _, key in ipairs(refactor_keys) do
-  vim.keymap.set('v', key[1], function()
-    if load_refactoring() then
-      key[2]()
-      -- Hotswap all keys at once
-      for _, k in ipairs(refactor_keys) do
-        vim.keymap.set('v', k[1], k[2], { desc = k[3] })
-      end
+for _, ref in ipairs(refactors) do
+  vim.keymap.set(ref.modes, ref.keys, function()
+    if bootstrap_refactoring() then
+      require('refactoring')[ref.action]()
     end
-  end, { desc = key[3] .. ' (loads on first use)' })
+  end, { desc = 'AST: ' .. ref.desc .. ' (JIT)' })
 end
+
+-- THE CONTRACT: Return the module to satisfy the Editing Orchestrator
+return M

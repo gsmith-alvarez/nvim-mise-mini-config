@@ -67,88 +67,40 @@ Kickstart Guide:
 P.S. You can delete this when you're done too. It's your config now! :)
 --]]
 
--- [[ Modular Neovim Configuration Entry Point ]]
--- This is the very first file Neovim reads when it starts up.
+-- =============================================================================
+-- [[ NEOVIM BOOTSTRAP OS ]]
+-- Architecture: Iterative Fault-Tolerant Loader
+-- =============================================================================
 
--- Prepend mise shims to the PATH so Neovim finds them before system binaries
-vim.env.PATH = vim.fn.expand '~/.local/share/mise/shims' .. ':' .. vim.env.PATH
-
--- Instead of putting everything here, we `require` (load) our modular files.
-
--- 1. Load Core Settings
-require 'core.settings.options'
-require 'core.settings.keymaps'
-require 'core.settings.autocmds'
-require 'core.settings.commands'
-require 'core.format'
-require 'core.lint'
-
--- [[ Bootstrap `mini.deps` ]]
--- We are not using a "plugin manager" in the traditional sense.
--- We are using a minimalist utility to fetch git repos.
-local deps_path = vim.fn.stdpath 'data' .. '/mini.deps'
-if not vim.loop.fs_stat(deps_path) then
-  vim.fn.system { 'git', 'clone', 'https://github.com/echasnovski/mini.deps', deps_path }
+-- [[ THE ANTI-FRAGILE ENGINE ]]
+-- Captures stack traces and schedules notifications for the UI-attach phase.
+local function safe_require(module)
+  local ok, err = pcall(require, module)
+  if not ok then
+    vim.schedule(function()
+      vim.notify(
+        string.format("[BOOT SEQUENCE FAILURE]\nModule: %s\nError: %s", module, err),
+        vim.log.levels.ERROR,
+        { title = "Init.lua Fault Tolerance" }
+      )
+    end)
+  end
+  return ok
 end
-vim.opt.rtp:prepend(deps_path)
-
--- [[ Imperative Plugin Loading ]]
--- Instead of a single declarative table, we now execute a series of Lua
--- modules that imperatively add and configure each plugin. The order of
--- execution is now explicit and under our direct control.
-require('mini.deps').setup()
-
-
-require('mini.deps').add({
-  source = 'nvim-telescope/telescope.nvim',
-  depends = { 'nvim-lua/plenary.nvim' }
-})
-
--- [[ GLOBAL FOUNDATION LAYER: Plenary.nvim ]]
--- CRITICAL: Plenary is a core utility library used by many plugins (Harpoon, Telescope, etc.).
--- It MUST be loaded globally and early to prevent cascading "module not found" errors.
-require('mini.deps').add('nvim-lua/plenary.nvim')
-vim.cmd('packadd plenary.nvim') -- Force load its modules into the runtimepath.
 
 -- =============================================================================
--- PLUGIN CONFIGURATIONS
+-- PHASE 1: CORE FOUNDATION
 -- =============================================================================
--- For maintainability, plugin configurations are now organized into categories
--- based on their functionality, mirroring the structure in the README.
+-- We load the reporter, installer, and core logic in a strict dependency order.
 
--- UI & Aesthetics
-require 'plugins.ui.colors' -- Load foundational aesthetic first
-require 'plugins.ui.noice'
-require 'plugins.ui'        -- Main UI setup (Markdown, Trouble)
-require 'plugins.ui.which-key'
-require 'plugins.ui.treesitter'
-require 'plugins.ui.starter'
+-- 1. Reporter: Must load first to log errors from subsequent modules.
+require('core.utils')
 
--- Core LSP, Completion & Formatting
-require 'plugins.lsp' -- Main LSP config
-require 'plugins.lsp.completion'
+-- 2. Core Orchestrator: Loads deps.lua, libs.lua, options, and keymaps
+safe_require('core')
 
--- Navigation & Core Editing
-require 'plugins.editing.mini'
-require 'plugins.editing.refactoring'
-require 'plugins.editing.smart-splits'
-require 'plugins.editing.tabout'
-require 'plugins.editing.indent'
+-- 3. Automation Layers: Custom user commands and autocommands
+safe_require('autocmd')
+safe_require('commands')
 
--- Telescope (Fuzzy Finding)
-require 'plugins.finding.telescope'
-
--- Git Integration
-require 'plugins.git.lazygit'
-
--- Pain-Driven Learning & Workflows
-require 'plugins.workflow.vim-be-good'
-require 'plugins.workflow.harpoon'
-require 'plugins.workflow.toggleterm'
-require 'plugins.workflow.yazi'
-
--- Debugging (DAP)
-require 'plugins.dap.debug'
-
--- notetaking
-require 'plugins.notetaking.history'
+safe_require('plugins')

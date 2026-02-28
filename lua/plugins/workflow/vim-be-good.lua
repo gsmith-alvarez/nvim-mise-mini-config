@@ -1,33 +1,53 @@
---- [[ vim-be-good: Vim Motion Training ]]
---- A plugin for practicing Vim motions and improving editing speed.
+-- [[ VIM-BE-GOOD: Motion Training Engine ]]
+-- Domain: Workflow & Skill Acquisition
+--
+-- PHILOSOPHY: Zero-Overhead Skill Development
+-- This plugin is purely for training and has no place in a production 
+-- buffer's memory footprint. We use a "Ghost Command" proxy that only 
+-- exists as a thin Lua wrapper until the user explicitly asks to practice.
 
---[[
-EXECUTION STRATEGY: Deferred loading via command stub.
-- A user command `:VimBeGood` is created at startup.
-- The plugin is not loaded into memory at boot.
-- The first time `:VimBeGood` is run, the stub function executes:
-  1. It adds `ThePrimeagen/vim-be-good` via MiniDeps.
-  2. It *forces* the plugin to load into Neovim's runtime via `packadd`.
-  3. It deletes the stub command.
-  4. It re-runs `:VimBeGood`, which now triggers the plugin's native command.
-- Subsequent calls to `:VimBeGood` are instantaneous.
---]]
+local M = {}
+local utils = require('core.utils')
 
 local loaded = false
 
-local function load_vbg_native()
-  if loaded then return end
-  require('mini.deps').add('ThePrimeagen/vim-be-good')
-  -- Force load: Ensure plugin modules are in Neovim's runtimepath immediately.
-  vim.cmd('packadd vim-be-good')
+-- [[ The JIT Engine ]]
+local function bootstrap_vbg()
+  if loaded then return true end
+
+  local ok, err = pcall(function()
+    -- Asymmetric Leverage: We use MiniDeps to fetch the source, 
+    -- but we don't call a setup function because VBG is a legacy-style 
+    -- plugin that initializes upon its command call.
+    require('mini.deps').add('ThePrimeagen/vim-be-good')
+    
+    -- Ensure the plugin is added to the runtimepath so the global 
+    -- plugin/ folder is sourced, exposing the native command.
+    vim.cmd('packadd vim-be-good')
+  end)
+
+  if not ok then
+    utils.soft_notify('Vim-Be-Good failed to materialize: ' .. err, vim.log.levels.ERROR)
+    return false
+  end
+
   loaded = true
+  return true
 end
 
--- Define the initial stub command.
+-- [[ THE GHOST COMMAND ]]
+-- We define the command once. On the first run, it bootstraps the plugin 
+-- and then delegates the call to the newly loaded native command.
 vim.api.nvim_create_user_command('VimBeGood', function()
-  load_vbg_native()
-  -- After loading, the plugin's native `:VimBeGood` command should be available.
-  vim.cmd('VimBeGood')
-  -- HOTSWAP: Redefine the user command to directly call the native plugin command.
-  vim.api.nvim_create_user_command('VimBeGood', '<cmd>VimBeGood<CR>', { desc = 'Practice Vim motions' })
-end, { desc = 'Practice Vim motions (loads on first use)' })
+  if bootstrap_vbg() then
+    -- We use pcall here because VBG sometimes fails if the window 
+    -- dimensions are too small or if it's called from a special buffer.
+    local success, cmd_err = pcall(vim.cmd, 'VimBeGood')
+    if not success then
+      utils.soft_notify('Vim-Be-Good native command failed: ' .. tostring(cmd_err), vim.log.levels.WARN)
+    end
+  end
+end, { desc = 'Practice Vim motions (JIT Boot)' })
+
+-- THE CONTRACT: Return the module to satisfy the Workflow Orchestrator
+return M

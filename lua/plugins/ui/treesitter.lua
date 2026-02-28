@@ -1,59 +1,82 @@
---- [[ Treesitter: Advanced Syntax Parsing ]]
---- The core engine for syntax highlighting and code structure analysis.
+-- [[ TREESITTER: Advanced Syntax Parsing ]]
+-- Domain: UI & Core Mechanics
+--
+-- PHILOSOPHY: Self-Healing Background Boot
+-- We use 'later' to defer loading. Crucially, we account for the 
+-- async nature of package managers: if the plugin is currently 
+-- downloading on a fresh install, we fail gracefully and silently 
+-- rather than throwing a red stack trace.
 
---[[
-EXECUTION STRATEGY: Deferred loading via `BufReadPre`/`BufNewFile`.
-- Treesitter is foundational but doesn't need to block the initial UI render.
-- We use `packadd` to force the Lua cache to refresh immediately after adding.
---]]
+local M = {}
+local utils = require('core.utils')
 
-local group = vim.api.nvim_create_augroup('MiniDeps_Treesitter', { clear = true })
+local ok, err = pcall(function()
+  local MiniDeps = require('mini.deps')
 
-vim.api.nvim_create_autocmd({ 'BufReadPre', 'BufNewFile' }, {
-  group = group,
-  pattern = '*',
-  callback = function()
-    local MiniDeps = require('mini.deps')
+  MiniDeps.later(function()
     
-    -- 1. Add the plugins to the ecosystem
-    MiniDeps.add('nvim-treesitter/nvim-treesitter')
-    MiniDeps.add('nvim-treesitter/nvim-treesitter-textobjects')
+    -- 1. Trigger the add/download
+    MiniDeps.add({
+      source = 'nvim-treesitter/nvim-treesitter',
+      hooks = {
+        post_checkout = function()
+          vim.cmd('TSUpdate')
+        end,
+      },
+    })
 
-    -- 2. CRITICAL FIX: Force Neovim to refresh its internal module paths
-    -- Without this, 'require' will fail to find the newly added folder.
-    vim.cmd('packadd nvim-treesitter')
+    MiniDeps.add({
+      source = 'nvim-treesitter/nvim-treesitter-textobjects',
+      depends = { 'nvim-treesitter/nvim-treesitter' }
+    })
 
-    -- 3. Safely configure using a protected call
-    local ok, configs = pcall(require, 'nvim-treesitter.configs')
-    if ok then
-      configs.setup({
-        ensure_installed = {
-          'bash', 'c', 'cpp', 'go', 'html', 'json', 'lua', 'markdown',
-          'markdown_inline', 'python', 'query', 'regex', 'rust', 'typescript',
-          'javascript', 'vim', 'yaml'
-        },
-        auto_install = true,
-        highlight = { enable = true },
-        indent = { enable = true },
-        textobjects = {
-          select = {
-            enable = true,
-            lookahead = true,
-            keymaps = {
-              ['aa'] = '@parameter.outer',
-              ['ia'] = '@parameter.inner',
-              ['af'] = '@function.outer',
-              ['if'] = '@function.inner',
-              ['ac'] = '@class.outer',
-              ['ic'] = '@class.inner',
-            },
+    -- [[ THE ARCHITECT'S MULTIPLIER: GRACEFUL DEGRADATION ]]
+    -- We attempt to load the configs. If it fails, it means mini.deps 
+    -- is still downloading it in the background. We simply exit the function.
+    local status_ok, ts_configs = pcall(require, 'nvim-treesitter.configs')
+    if not status_ok then
+      -- Do not throw an error here. Just wait for the next Neovim launch.
+      return 
+    end
+
+    -- 3. Initialize the Configuration (Only runs if downloaded)
+    ts_configs.setup({
+      ensure_installed = {
+        'bash', 'json', 'toml', 'yaml',
+        'c', 'cpp', 'go', 'lua', 'python', 'rust', 'zig',
+        'html', 'javascript', 'typescript', 'markdown', 'markdown_inline',
+        'query', 'regex', 'vim', 'vimdoc',
+      },
+      
+      auto_install = true,
+      
+      highlight = { 
+        enable = true,
+        additional_vim_regex_highlighting = false,
+      },
+      
+      indent = { enable = true },
+      
+      textobjects = {
+        select = {
+          enable = true,
+          lookahead = true, 
+          keymaps = {
+            ['aa'] = '@parameter.outer',
+            ['ia'] = '@parameter.inner',
+            ['af'] = '@function.outer',
+            ['if'] = '@function.inner',
+            ['ac'] = '@class.outer',
+            ['ic'] = '@class.inner',
           },
         },
-      })
+      },
+    })
+  end)
+end)
 
-      -- 4. Set global flag and self-destruct
-      vim.g.treesitter_loaded = true
-      vim.api.nvim_clear_autocmds({ group = group })
-    end
-  end,
-})
+if not ok then
+  utils.soft_notify('Treesitter critical failure: ' .. err, vim.log.levels.ERROR)
+end
+
+return M

@@ -1,135 +1,57 @@
---- [[ Language Server Protocol (LSP) Engine ]]
---- The core of code intelligence: diagnostics, go-to-definition, etc.
+-- [[ UI DOMAIN ORCHESTRATOR ]]
+-- Location: lua/plugins/ui/init.lua
+-- Domain: Aesthetics, Telemetry, and Visual Overlays
+--
+-- PHILOSOPHY: Strict Rendering Hierarchy
+-- We abandon alphabetical loading in favor of a rigid, dependency-first 
+-- boot sequence. Foundational layers (colors and icons) must be locked in 
+-- memory before the telemetry engines (statusline/tabline) attempt to draw.
 
---[[
-EXECUTION STRATEGY: Deferred loading via `VimEnter` autocmd.
-- The LSP engine is complex and one of the heaviest parts of the configuration.
-- We defer its entire initialization until Neovim is fully loaded and idle.
-- This ensures the fastest possible "time to interactive" for the editor UI.
---]]
+local M = {}
+local utils = require('core.utils')
 
-local group = vim.api.nvim_create_augroup('MiniDeps_LSP', { clear = true })
+-- [[ THE RENDERING PIPELINE ]]
+-- Order is absolute. Do not alphabetize this list.
+local modules = {
+  -- 1. THE FOUNDATION (Synchronous Blocking)
+  -- Must load first to prevent the "Flash of Unstyled Content" (FOUC).
+  'ui.mini-colors',
 
-vim.api.nvim_create_autocmd('VimEnter', {
-  group = group,
-  once = true, -- Only run this autocmd once per Neovim session
-  callback = function()
-    local MiniDeps = require('mini.deps')
-    MiniDeps.add('neovim/nvim-lspconfig')
-    MiniDeps.add('j-hui/fidget.nvim')
-    -- blink.cmp is a dependency of completion.lua, ensure it is added here
-    MiniDeps.add('saghen/blink.cmp')
+  -- 2. THE GLYPH ENGINE (Synchronous Polyfill)
+  -- Injects 'mini.icons' and polyfills 'nvim-web-devicons' so subsequent
+  -- plugins don't crash looking for the legacy provider.
+  'ui.mini-icons',
 
-    local utils = require('core.utils')
-    require('fidget').setup({})
+  -- 3. THE INTERCEPTION LAYER (Synchronous Overlay)
+  -- Hijacks native vim.notify and cmdline engines before Neovim 
+  -- renders the default, legacy UI.
+  'ui.noice',
 
-    -- Capability Resolution with Safety Check
-    -- ASYMMETRIC LEVERAGE: We defensively check if blink.cmp is loaded.
-    -- If not, we still provide basic capabilities, preventing a crash.
-    local capabilities = vim.lsp.protocol.make_client_capabilities()
-    local has_blink, blink = pcall(require, 'blink.cmp')
-    if has_blink then
-      capabilities = blink.get_lsp_capabilities(capabilities) -- Extend capabilities with blink.cmp
-    end
+  -- 4. TELEMETRY (Passive Redraws)
+  -- Safe to load now that colors and icons are fully active in memory.
+  'ui.mini-statusline',
+  'ui.mini-tabline',
 
-    -- Define your LSP servers here. Map lspconfig server name to mise binary name.
-    local servers = {
-      clangd = { bin_name = 'clangd' },
-      pyright = { bin_name = 'pyright-langserver', cmd_args = { '--stdio' } },
-      ruff = { bin_name = 'ruff', cmd_args = { 'server' } },
-      rust_analyzer = { bin_name = 'rust-analyzer' },
-      bashls = { bin_name = 'bash-language-server', cmd_args = { 'start' } },
-      jsonls = { bin_name = 'vscode-json-languageserver', cmd_args = { '--stdio' } },
+  -- 5. DEFERRED ENGINES & DASHBOARDS (Event-Based)
+  -- These manage their own lazy-loading via 'BufReadPre', 'VimEnter', or 
+  -- JIT proxies. Their order here only registers their triggers.
+  'ui.treesitter',
+  'ui.mini-starter',
+  'ui.which-key',
+  'ui.trouble',
+  'ui.render-markdown',
+}
 
-      lua_ls = {
-        bin_name = 'lua-language-server',
-        settings = {
-          Lua = {
-            runtime = {
-              version = 'LuaJIT',
-            },
-            diagnostics = {
-              globals = { 'vim' },
-            },
-            workspace = {
-              -- This makes the server aware of Neovim's built-in functions
-              library = vim.api.nvim_get_runtime_file("", true),
-              checkThirdParty = false,
-            },
-            completion = {
-              callSnippet = 'Replace',
-            },
-            telemetry = { enable = false },
-          },
-        },
-      },
+for _, mod in ipairs(modules) do
+  -- Resolve the full Lua namespace path relative to 'lua/' folder
+  local module_path = 'plugins.' .. mod
+  local ok, err = pcall(require, module_path)
 
-      marksman = { bin_name = 'marksman', cmd_args = { 'server' } },
-      gopls = { bin_name = 'gopls' },
-      ts_ls = { bin_name = 'typescript-language-server', cmd_args = { '--stdio' } },
-    }
+  if not ok then
+    -- Route fatal rendering failures to the diagnostic audit trail
+    utils.soft_notify(string.format("UI DOMAIN FAILURE: [%s]\n%s", module_path, err), vim.log.levels.ERROR)
+  end
+end
 
-    -- No longer using `require('lspconfig')` directly for `setup`.
-    -- We configure `vim.lsp.config` directly and then enable servers.
-    local configured_servers = {}
-    for server_name, config_opts in pairs(servers) do
-      local bin_path = utils.mise_shim(config_opts.bin_name)
-      if bin_path then
-        local server_config = {
-          cmd = { bin_path },
-          capabilities = capabilities,
-          settings = config_opts.settings, -- Inherit settings if defined
-        }
-        if config_opts.cmd_args then
-          vim.list_extend(server_config.cmd, config_opts.cmd_args)
-        end
-        vim.lsp.config[server_name] = server_config
-        table.insert(configured_servers, server_name)
-      else
-        utils.soft_notify('LSP missing (graceful degradation): ' .. config_opts.bin_name, vim.log.levels.WARN)
-      end
-    end
-
-    vim.lsp.enable(configured_servers)
-
-    -- Autocommand for LSP features (keymaps, highlights) when an LSP attaches.
-    vim.api.nvim_create_autocmd('LspAttach', {
-      group = vim.api.nvim_create_augroup('kickstart-lsp-attach-post-deps', { clear = true }),
-      callback = function(event)
-        local map = function(keys, func, desc, mode)
-          vim.keymap.set(mode or 'n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
-        end
-        map('<leader>cn', vim.lsp.buf.rename, 'Re[n]ame')
-        map('<leader>ca', vim.lsp.buf.code_action, 'Code [A]ctions', { 'n', 'x' })
-
-        -- Telescope-dependent mappings
-        map('<leader>cl', function() require('telescope.builtin').lsp_references() end, '[C]ode [L]SP [R]eferences')
-        map('<leader>ci', function() require('telescope.builtin').lsp_implementations() end, '[C]ode [I]mplementations')
-        map('<leader>cf', function() require('telescope.builtin').lsp_definitions() end, '[C]ode De[f]inition')
-        map('<leader>ct', function() require('telescope.builtin').lsp_type_definitions() end, '[C]ode [T]ype Definition')
-        map('<leader>co', function() require('telescope.builtin').lsp_document_symbols() end, 'Open Document Symbols')
-        map('<leader>cw', function() require('telescope.builtin').lsp_dynamic_workspace_symbols() end,
-          'Open Workspace Symbols')
-
-        map('<leader>cc', vim.lsp.buf.declaration, '[C]ode De[c]laration')
-
-        local client = vim.lsp.get_client_by_id(event.data.client_id)
-        if client and client.server_capabilities.documentHighlightProvider then
-          local augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight-defer', { clear = false })
-          vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' },
-            { buffer = event.buf, group = augroup, callback = vim.lsp.buf.document_highlight })
-          vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' },
-            { buffer = event.buf, group = augroup, callback = vim.lsp.buf.clear_references })
-        end
-        if client and client.server_capabilities.inlayHintProvider then
-          map('<leader>ch',
-            function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf })) end,
-            '[C]ode Inlay [H]ints')
-        end
-      end,
-    })
-
-    -- Self-destruct the autocmd after it runs once.
-    vim.api.nvim_clear_autocmds({ group = 'MiniDeps_LSP' })
-  end,
-})
+-- THE CONTRACT: Return the module to satisfy the Master Boot Sequence
+return M

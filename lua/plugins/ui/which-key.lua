@@ -1,101 +1,111 @@
---- [[ Which-key Discovery Layer ]]
---- Provides a popup menu of available keybindings after a prefix key.
+-- [[ WHICH-KEY: Discovery & Mnemonic Layer ]]
+-- Domain: UI & Aesthetics
+--
+-- PHILOSOPHY: Asynchronous UI Attachment
+-- Which-key provides a popup menu of available keybindings. Since it is purely 
+-- visual, we completely remove it from the critical boot path. It is injected 
+-- into the runtime only after Neovim triggers the 'VimEnter' event.
 
---[[
-EXECUTION STRATEGY: Deferred loading via `VimEnter` autocmd.
-- `which-key.nvim` is a discovery tool, not a critical boot-path dependency.
-- We defer its loading until Neovim is fully initialized and idle (`VimEnter`).
-- This keeps the startup path extremely fast, as this plugin is only parsed
-  and configured after you see the UI.
---]]
+local M = {}
+local utils = require('core.utils')
 
--- Create a one-shot autocommand group.
-local group = vim.api.nvim_create_augroup('MiniDeps_WhichKey', { clear = true })
+-- [[ DEFERRED BOOTSTRAPPER ]]
+local group = vim.api.nvim_create_augroup('UI_WhichKey', { clear = true })
+
 vim.api.nvim_create_autocmd('VimEnter', {
   group = group,
   pattern = '*',
   callback = function()
-    -- The add() function is idempotent.
-    require('mini.deps').add('folke/which-key.nvim')
+    -- 1. Safely resolve and configure the dependency
+    local ok, err = pcall(function()
+      require('mini.deps').add('folke/which-key.nvim')
 
-    require('which-key').setup({
-      preset = 'classic',
-      delay = 0,
-      icons = { mappings = vim.g.have_nerd_font },
-      win = { border = 'single', padding = { 1, 2 } },
-      spec = {
-        -- [[ GROUP HEADERS ]]
-        -- Strategic Use of Icons: These allow for "Asymmetric Visual Matching,"
-        -- letting your brain find the tool before your eyes read the text.
-        { '<leader>c', group = '💻 Code' },
-        { '<leader>d', group = '🐞 Debug' },
-        { '<leader>g', group = '📦 Git' },
-        { '<leader>h', group = '⚓ Git Hunks', mode = { 'n', 'v' } }, -- Dedicated to Git Hunks
-        { '<leader>o', group = '📝 Notes' },
-        { '<leader>p', group = '🚀 PlatformIO' },
-        { '<leader>r', group = '🛠️ Refactor' },
-        { '<leader>s', group = '🔍 Search' },
-        { '<leader>t', group = '⚙️ Toggles' },
-        { '<leader>v', group = '👁️ View' },
+      require('which-key').setup({
+        preset = 'classic',
+        
+        -- UI Configuration
+        win = { 
+          border = 'single', 
+          padding = { 1, 2 } 
+        },
+        
+        icons = { 
+          -- Respects global Nerd Font settings (defaults to true if undefined)
+          mappings = vim.g.have_nerd_font ~= false,
+        },
 
-        { '<leader>u', group = '🎨 UI Utils' },
-        { '<leader>z', group = '🧱 Zellij' },
-        { "<leader>b", group = "󰓩 Buffers" },
+        -- [[ THE MNEMONIC REGISTRY ]]
+        -- This maps prefixes to human-readable group names.
+        -- Note: Individual key descriptions (like <leader>f for format) do NOT 
+        -- need to be defined here if they are already defined in vim.keymap.set.
+        -- Which-key automatically reads the 'desc' field from your native keymaps.
+        spec = {
+          -- Core Tool Groups
+          { '<leader>c', group = '💻 Code' },
+          { '<leader>d', group = '🐞 Debug' },
+          { '<leader>g', group = '📦 Git' },
+          { '<leader>h', group = '⚓ Git Hunks', mode = { 'n', 'v' } },
+          { '<leader>o', group = '📝 Notes' },
+          { '<leader>p', group = '🚀 PlatformIO' },
+          { '<leader>r', group = '🛠️ Refactor' },
+          { '<leader>s', group = '🔍 Search' },
+          { '<leader>t', group = '⚙️ Toggles' },
+          { '<leader>u', group = '🎨 UI Utils' },
+          { '<leader>v', group = '👁️ View' },
+          { '<leader>z', group = '🧱 Zellij' },
+          { '<leader>b', group = '󰓩 Buffers' },
+          
+          -- We leave the standalone mappings (like <leader>y or <leader>tm) 
+          -- intact here for legacy compatibility, but encourage migrating their 
+          -- descriptions directly to their respective vim.keymap.set definitions.
+          { '<leader>tm', desc = '📝 Markdown Preview' },
+          { '<leader>ts', desc = '🎧 Spotify Player' },
+          { '<leader>tp', desc = '📊 Process Monitor' },
+          { '<leader>ta', desc = '🤖 Aider AI Chat' },
+          { '<leader>ti', desc = '📦 Infrastructure (Podman)' },
+          { '<leader>th', desc = '💡 LSP: Inlay Hints' },
+          { '<leader>f',  desc = '✨ [F]ormat buffer' },
+          { '<leader>q',  desc = '🗒️ Open diagnostic [Q]uickfix list' },
+          { '<leader>du', desc = 'Toggle DAP UI' },
+          { '<leader>dr', desc = 'Toggle DAP REPL' },
+          { '<leader>pb', desc = '[B]uild Project' },
+          { '<leader>pu', desc = '[U]pload Firmware' },
+          { '<leader>pm', desc = 'Device [M]onitor' },
+          { '<leader>pc', desc = 'Update [C]ompilation Database' },
+          { '<leader>re', desc = '[E]xtract Function' },
+          { '<leader>rf', desc = 'Extract [F]unction to File' },
+          { '<leader>rv', desc = 'Extract [V]ariable' },
+          { '<leader>ri', desc = '[I]nline Variable' },
+          { '<leader>rr', desc = '[R]ing (Telescope)' },
+          { '<leader>ff', desc = '[F]ind [F]iles' },
+          { '<leader>sh', desc = '[S]earch [H]elp' },
+          { '<leader>sk', desc = '[S]earch [K]eymaps' },
+          { '<leader>ss', desc = '[S]earch [S]elect Telescope' },
+          { '<leader>sw', desc = '[S]earch current [W]ord' },
+          { '<leader>sg', desc = '[S]earch by [G]rep' },
+          { '<leader>sd', desc = '[S]earch [D]iagnostics' },
+          { '<leader>sr', desc = '[S]earch [R]esume' },
+          { '<leader>s.', desc = '[S]earch Recent Files' },
+          { '<leader>sn', desc = '[S]earch [N]eovim files' },
+          { '<leader><leader>', desc = '[ ] Find existing buffers' },
+          { '<leader>cd', desc = '[C]hange [D]irectory (Zoxide)' },
+          { '<leader>cx', desc = '󱓞 [C]ode [X]ecute (Watch Mode)' },
+          { '<leader>cr', desc = '󰑮 [C]ode [R]un (Interactive)' },
+          { '<leader>cf', desc = '✨ [C]ode [F]ormat Buffer' },
+          { '<leader>y',  desc = '🖼️ Yazi File Manager' },
+        },
+      })
+    end)
 
-        -- [[ TOGGLES & DASHBOARD ]]
-        { '<leader>tm', desc = '📝 Markdown Preview' },
-        { '<leader>ts', desc = '🎧 Spotify Player' },
-        { '<leader>tp', desc = '📊 Process Monitor' },
-        { '<leader>ta', desc = '🤖 Aider AI Chat' },
-        { '<leader>ti', desc = '📦 Infrastructure (Podman)' },
-        { '<leader>th', desc = '💡 LSP: Inlay Hints' },
+    if not ok then
+      utils.soft_notify('Which-key failed to load: ' .. err, vim.log.levels.ERROR)
+    end
 
-        -- [[ CODE & QUICKFIX ]]
-        { '<leader>f', desc = '✨ [F]ormat buffer' },
-        { '<leader>q', desc = '🗒️ Open diagnostic [Q]uickfix list' },
-
-        -- [[ DEBUGGING ]]
-        { '<leader>du', desc = 'Toggle DAP UI' },
-        { '<leader>dr', desc = 'Toggle DAP REPL' },
-
-        -- [[ PLATFORMIO ACTIONS ]]
-        { '<leader>pb', desc = '[B]uild Project' },
-        { '<leader>pu', desc = '[U]pload Firmware' },
-        { '<leader>pm', desc = 'Device [M]onitor' },
-        { '<leader>pc', desc = 'Update [C]ompilation Database' },
-
-        -- [[ REFACTORING ]]
-        { '<leader>re', desc = '[E]xtract Function' },
-        { '<leader>rf', desc = 'Extract [F]unction to File' },
-        { '<leader>rv', desc = 'Extract [V]ariable' },
-        { '<leader>ri', desc = '[I]nline Variable' },
-        { '<leader>rr', desc = '[R]ing (Telescope)' },
-
-        -- [[ SEARCH & NAVIGATION (TELESCOPE) ]]
-        { '<leader>ff', desc = '[F]ind [F]iles' },
-        { '<leader>sh', desc = '[S]earch [H]elp' },
-        { '<leader>sk', desc = '[S]earch [K]eymaps' },
-        { '<leader>ss', desc = '[S]earch [S]elect Telescope' },
-        { '<leader>sw', desc = '[S]earch current [W]ord' },
-        { '<leader>sg', desc = '[S]earch by [G]rep' },
-        { '<leader>sd', desc = '[S]earch [D]iagnostics' },
-        { '<leader>sr', desc = '[S]earch [R]esume' },
-        { '<leader>s.', desc = '[S]earch Recent Files' },
-        { '<leader>sn', desc = '[S]earch [N]eovim files' },
-        { '<leader><leader>', desc = '[ ] Find existing buffers' },
-        { '<leader>cd', desc = '[C]hange [D]irectory (Zoxide)' },
-
-        -- [[ Code ]]
-        { '<leader>cx', desc = '󱓞 [C]ode [X]ecute (Watch Mode)' },
-        { '<leader>cr', desc = '󰑮 [C]ode [R]un (Interactive)' },
-        { '<leader>cf', desc = '✨ [C]ode [F]ormat Buffer' },
-
-        -- [[ UI UTILITIES ]]
-        { '<leader>y', desc = '🖼️ Yazi File Manager' }
-      },
-    })
-
-    -- Self-destruct the autocommand.
-    vim.api.nvim_clear_autocmds({ group = 'MiniDeps_WhichKey' })
+    -- 2. Self-Destruct
+    -- Clears the autocommand group so it never fires again during this session.
+    vim.api.nvim_clear_autocmds({ group = 'UI_WhichKey' })
   end,
 })
+
+-- THE CONTRACT: Return the module to satisfy the UI Orchestrator
+return M

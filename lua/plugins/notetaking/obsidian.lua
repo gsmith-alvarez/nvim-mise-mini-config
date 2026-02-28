@@ -116,27 +116,27 @@ function M.setup()
 
 
       -- 2. Note Creation & Templates
-      ["<leader>ot"] = {
+      ["<leader>nt"] = {
         action = function() vim.cmd("ObsidianTemplate") end,
         opts = { buffer = true, desc = "Obsidian: Insert [T]emplate" },
       },
-      ["<leader>oe"] = {
+      ["<leader>ne"] = {
         action = function() vim.cmd("ObsidianExtractNote") end,
-        opts = { mode = "v", buffer = true, desc = "Obsidian: [E]xtract Selection to Note" },
+        opts = { mode = "v", buffer = true, desc = "Obsidian: [E]xtract Selection to [N]ote" },
       },
-      ["<leader>ol"] = {
+      ["<leader>nl"] = {
         -- Prompts for a search query to link an existing note
         action = function() vim.cmd("ObsidianLink") end,
-        opts = { buffer = true, desc = "Obsidian: [L]ink Existing Note" },
+        opts = { buffer = true, desc = "Obsidian: [L]ink Existing [N]ote" },
       },
-      ["<leader>ok"] = {
+      ["<leader>nn"] = {
         -- Prompts for a title to create and link a NEW note
         action = function() vim.cmd("ObsidianLinkNew") end,
-        opts = { buffer = true, desc = "Obsidian: Lin[k] New Note" },
+        opts = { buffer = true, desc = "Obsidian: Lin[k] New [N]ote" },
       },
 
       -- 3. Media & Attachments
-      ["<leader>op"] = {
+      ["<leader>np"] = {
         action = function() vim.cmd("ObsidianPasteImg") end,
         opts = { buffer = true, desc = "Obsidian: [P]aste Image from Clipboard" },
       },

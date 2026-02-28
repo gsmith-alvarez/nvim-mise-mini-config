@@ -1,59 +1,58 @@
---- [[ Core UI Elements ]]
---- Manages secondary UI plugins like Markdown rendering and diagnostics.
+-- [[ UI DOMAIN ORCHESTRATOR ]]
+-- Location: lua/plugins/ui/init.lua
+-- Domain: Aesthetics, Telemetry, and Visual Overlays
+--
+-- PHILOSOPHY: Strict Rendering Hierarchy
+-- We abandon alphabetical loading in favor of a rigid, dependency-first
+-- boot sequence. Foundational layers (colors and icons) must be locked in
+-- memory before the telemetry engines (statusline/tabline) attempt to draw.
 
---[[
-EXECUTION STRATEGY: Deferred loading via `BufEnter` autocmd.
-- These UI elements are important but not critical for the initial render.
-- We wait until the first buffer is entered, and we explicitly check for the
-  `vim.g.colors_loaded` guard flag set by `colors.lua`.
-- This creates a non-blocking, ordered-by-default UI loading sequence.
---]]
+local M = {}
+local utils = require('core.utils')
 
-local group = vim.api.nvim_create_augroup('MiniDeps_CoreUI', { clear = true })
-vim.api.nvim_create_autocmd('BufEnter', {
-  group = group,
-  pattern = '*',
-  callback = function()
-    -- Wait until the colorscheme has loaded.
-    if not vim.g.colors_loaded then return end
+-- [[ THE RENDERING PIPELINE ]]
+-- Order is absolute. Do not alphabetize this list.
+local modules = {
+  -- 1. THE FOUNDATION (Synchronous Blocking)
+  -- Must load first to prevent the "Flash of Unstyled Content" (FOUC).
+  'ui.mini-colors',
 
-    local MiniDeps = require('mini.deps')
-    MiniDeps.add('MeanderingProgrammer/render-markdown.nvim')
-    MiniDeps.add('folke/trouble.nvim')
+  -- 2. THE GLYPH ENGINE (Synchronous Polyfill)
+  -- Must load immediately after colors to polyfill 'nvim-web-devicons'
+  -- before any other plugin asks for it.
+  'ui.mini-icons',
 
-    -- Configure Markdown Rendering
-    require('render-markdown').setup({})
-    vim.api.nvim_create_autocmd('FileType', {
-      pattern = 'markdown',
-      callback = function() vim.treesitter.start() end,
-    })
-    if vim.bo.filetype == 'markdown' then vim.treesitter.start() end
+  -- 3. THE INTERCEPTION LAYER (Synchronous Overlay)
+  -- Hijacks the native vim.notify and cmdline engines before Neovim
+  -- has a chance to render the default UI.
+  'ui.noice',
 
-    -- Configure Trouble (diagnostics viewer)
-    require('trouble').setup({})
-    
-    -- Self-destruct the autocommand.
-    vim.api.nvim_clear_autocmds({ group = 'MiniDeps_CoreUI' })
-  end,
-})
+  -- 4. TELEMETRY (Passive Redraws)
+  -- Safe to load now that colors and icons are fully active in memory.
+  'ui.mini-statusline',
+  'ui.mini-tabline',
 
--- Keymap stubs for Trouble
-vim.keymap.set('n', '<leader>xx', function()
-  if not require('trouble') then
-    vim.notify('Trouble not loaded yet, please wait a moment and try again.', vim.log.levels.WARN)
-    return
+  -- 5. DEFERRED ENGINES & DASHBOARDS (JIT / Autocmds)
+  -- These plugins manage their own lazy-loading via events (BufReadPre, VimEnter)
+  -- or JIT proxies. Their load order here only registers their triggers;
+  -- it does not block the main thread.
+  'ui.treesitter',
+  'ui.mini-starter',
+  'ui.which-key',
+  'ui.trouble',
+  'ui.render-markdown',
+}
+
+for _, mod in ipairs(modules) do
+  -- Resolve the full Lua namespace path relative to 'lua/' folder
+  local module_path = 'plugins.' .. mod
+  local ok, err = pcall(require, module_path)
+
+  if not ok then
+    -- Route fatal rendering failures to the diagnostic audit trail
+    utils.soft_notify(string.format("UI DOMAIN FAILURE: [%s]\n%s", module_path, err), vim.log.levels.ERROR)
   end
-  vim.cmd('Trouble diagnostics toggle') -- Toggle workspace diagnostics
-  -- Hotswap
-  vim.keymap.set('n', '<leader>xx', '<cmd>Trouble diagnostics toggle<cr>', { desc = 'Toggle Workspace Diagnostics (Trouble)' })
-end, { desc = 'Toggle Workspace Diagnostics (Trouble) (loads on BufEnter)' })
+end
 
-vim.keymap.set('n', '<leader>xd', function()
-  if not require('trouble') then return end
-  vim.cmd('Trouble diagnostics toggle filter.buf=0') -- Toggle document diagnostics
-end, { desc = 'Toggle Document Diagnostics (Trouble)' })
-
-vim.keymap.set('n', '<leader>xq', function()
-  if not require('trouble') then return end
-  vim.cmd('Trouble quickfix toggle')
-end, { desc = 'Toggle Quickfix in Trouble' })
+-- THE CONTRACT: Return the module to satisfy the Master Boot Sequence
+return M
