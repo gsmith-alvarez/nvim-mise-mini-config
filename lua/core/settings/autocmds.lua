@@ -159,3 +159,60 @@ vim.api.nvim_create_autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
     end
   end,
 })
+
+-- ============================================================================
+-- MODULE: JIT Entry Points (Obsidian & LuaSnip)
+-- CONTEXT: Global stubs and autocmds that bootstrap heavy modules on demand.
+-- ============================================================================
+
+local map = vim.keymap.set
+
+-- 1. THE AUTOCOMMAND ENTRY POINTS (Buffer Context)
+local jit_group = vim.api.nvim_create_augroup("JIT_Notetaking", { clear = true })
+
+-- Obsidian JIT
+vim.api.nvim_create_autocmd("FileType", {
+  group = jit_group,
+  pattern = "markdown",
+  callback = function()
+    if not vim.g.obsidian_loaded then
+      require("plugins.notetaking.obsidian").setup()
+      vim.g.obsidian_loaded = true
+    end
+  end,
+})
+
+-- LuaSnip JIT
+vim.api.nvim_create_autocmd("FileType", {
+  group = jit_group,
+  pattern = { "markdown", "tex" },
+  callback = function()
+    if not vim.g.luasnip_loaded then
+      require("plugins.notetaking.luasnips").setup()
+      vim.g.luasnip_loaded = true
+    end
+  end,
+})
+
+-- 2. THE GLOBAL STUB ENTRY POINTS (Cross-Workspace Context)
+-- These allow you to search your vault while working in a Python or Rust file.
+-- They intercept the keystroke, load the plugin, and then execute the native command.
+
+local function bootstrap_obsidian(cmd)
+  return function()
+    if not vim.g.obsidian_loaded then
+      require("plugins.notetaking.obsidian").setup()
+      vim.g.obsidian_loaded = true
+    end
+    -- Execute the requested Obsidian command after the plugin is verified loaded
+    vim.cmd(cmd)
+  end
+end
+
+-- Map the stubs
+map("n", "<leader>oq", bootstrap_obsidian("ObsidianQuickSwitch"), { desc = "[O]bsidian [Q]uick Switch" })
+map("n", "<leader>os", bootstrap_obsidian("ObsidianSearch"), { desc = "[O]bsidian [S]earch (Ripgrep)" })
+map("n", "<leader>on", bootstrap_obsidian("ObsidianNew"), { desc = "[O]bsidian [N]ew Note" })
+
+-- The line beneath this is called `modeline`. See `:help modeline`
+-- vim: ts=2 sts=2 sw=2 et
