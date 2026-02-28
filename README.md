@@ -1,212 +1,407 @@
-# Neovim: Mise-First, Mason-Free Architecture
+# Ground Truth Neovim Configuration
 
-A high-performance, modular, and extremely resilient Neovim configuration engineered for deterministic toolchain management through a **Mise-First** approach and massive plugin consolidation via the **mini.nvim** ecosystem, managed imperatively with **mini.deps**.
+This README documents the architecture, logic, keybindings, and dependencies of this high-performance, net-multiplier Neovim configuration.
 
-## 1. Architectural Philosophy
+## The Architecture Map
 
-This configuration completely purges `lazy.nvim`, `mason.nvim`, and bloated standalone plugins. It operates on four foundational pillars:
-
-**Why remove Mason & Lazy.nvim?**
-- **Deterministic Control:** Your toolchain is defined outside of Neovim with `mise`, and plugins are managed explicitly with `mini.deps`, ensuring consistency.
-- **Environmental Purity:** Neovim acts strictly as a consumer of binaries. This avoids the common "it works in Neovim but not in my terminal" discrepancy.
-- **Performance:** No runtime overhead from plugin-driven binary management (`mason`) or complex declarative plugin loading (`lazy.nvim`). `mini.deps` is a simple dependency fetcher, not a manager.
-
-1. **Deterministic Environment (Mise):** Your toolchain (LSPs, linters, formatters, and debuggers) is defined outside of Neovim using the OS-level environment manager, [**mise**](https://mise.jdx.dev/). Neovim acts strictly as a consumer of these binaries, leveraging a native `mise_shim`.
-2. **Graceful Degradation & Anti-Fragility:** Every external integration is wrapped in `require('core.utils').mise_shim('binary_name')` checks. If a binary is missing, Neovim suppresses Lua errors and boots cleanly, providing a warning or an itemized `:ToolCheck` audit report.
-3. **Consolidated Core (Mini.nvim):** Dozens of plugins have been replaced by the modular `mini.nvim` ecosystem, dramatically improving startup time and UI cohesion.
-4. **Imperative Plugin Management (Mini.deps):** `lazy.nvim` has been purged in favor of `mini.deps`. Plugins are now loaded imperatively with explicit `MiniDeps.add()` calls, often via JIT keymap/command stubs or self-destructing autocommands, ensuring a sub-30ms "time to interactive."
-
-## 2. Prerequisites & Toolchain Setup
-
-This configuration requires certain tools to be installed at the system level. **Note:** While `mise` is exceptional for managing runtimes (Node, Go, Python), it is not a system package manager. Core build tools must be installed via your OS package manager (e.g., `apt`, `dnf`, `brew`).
-
-### System Dependencies
-The following must be available in your system path:
-- **Neovim (>= 0.10.0)**
-- **Git** (For plugin cloning)
-- **Make, GCC, or Clang** (Required to build native C components for plugins like `telescope-fzf-native` and `treesitter`)
-- **A Nerd Font** (e.g., JetBrainsMono Nerd Font)
-- **mise-en-place (mise)** (For all other toolchain management)
-
-### Global Toolchain Setup (Mise)
-To populate your environment with the required binaries, execute these commands:
-
-```bash
-# Install required core CLI utilities
-mise install -g ripgrep fd lazygit bottom delve zoxide gojq sd xh typos watchexec ouch glow spotify_player aider podman-tui
-
-# Install the language ecosystems
-mise install -g node@latest python@latest go@latest rust@latest
-
-# Install LSPs, Formatters, and Linters
-mise install -g pyright ruff rust-analyzer bash-language-server \
-            vscode-json-languageserver lua-language-server \
-            marksman gopls typescript-language-server \
-            stylua oxfmt markdownlint-cli2 shellcheck
+```lua
+-- /home/gsmith-alvarez/.config/nvim/
+-- ├───init.lua
+-- └───lua/
+--     ├───autocmd/
+--     │   ├───basic.lua
+--     │   ├───external.lua
+--     │   ├───init.lua
+--     │   └───jit.lua
+--     ├───commands/
+--     │   ├───auditing.lua
+--     │   ├───building.lua
+--     │   ├───diagnostics.lua
+--     │   ├───init.lua
+--     │   ├───mux.lua
+--     │   └───utilities.lua
+--     ├───core/
+--     │   ├───deps.lua
+--     │   ├───format.lua
+--     │   ├───init.lua
+--     │   ├───keymaps.lua
+--     │   ├───libs.lua
+--     │   ├───lint.lua
+--     │   ├───options.lua
+--     │   └───utils.lua
+--     └───plugins/
+--         ├───dap/
+--         │   ├───debug.lua
+--         │   ├───init.lua
+--         │   ├───nvim-dap-virtual-text.lua
+--         │   └───persistent-breakpoint.lua
+--         ├───editing/
+--         │   ├───inc-rename.lua
+--         │   ├───indent.lua
+--         │   ├───indentscope.lua
+--         │   ├───init.lua
+--         │   ├───mini-ai.lua
+--         │   ├───mini-hipatterns.lua
+--         │   ├───mini-move.lua
+--         │   ├───pairs.lua
+--         │   ├───refactoring.lua
+--         │   └───surround.lua
+--         ├───finding/
+--         │   ├───aerial.lua
+--         │   ├───init.lua
+--         │   └───telescope.lua
+--         ├───git/
+--         │   ├───diff.lua
+--         │   ├───init.lua
+--         │   └───lazygit.lua
+--         ├───lsp/
+--         │   ├───blink.lua
+--         │   ├───init.lua
+--         │   └───native-lsp.lua
+--         ├───navigation/
+--         │   ├───harpoon.lua
+--         │   ├───history.lua
+--         │   ├───mini-bracketed.lua
+--         │   ├───mini-files.lua
+--         │   ├───smart-splits.lua
+--         │   ├───tabout.lua
+--         │   └───yazi.lua
+--         ├───notetaking/
+--         │   ├───luasnips.lua
+--         │   └───obsidian.lua
+--         └───ui/
+--             ├───mini-colors.lua
+--             ├───mini-icons.lua
+--             ├───mini-starter.lua
+--             ├───mini-statusline.lua
+--             ├───mini-tabline.lua
+--             ├───noice.lua
+--             ├───quotes.lua
+--             ├───render-markdown.lua
+--             ├───treesitter.lua
+--             ├───trouble.lua
+--             └───which-key.lua
+--         └───workflow/
+--             ├───init.lua
+--             ├───overseer.lua
+--             ├───persistence.lua
+--             ├───toggleterm.lua
+--             └───vim-be-good.lua
 ```
 
-*Note: On Linux, it is recommended to install `clangd` via your system package manager (e.g., `dnf install clang-tools-extra` or `apt install clangd`).*
+## The Logic Report
 
-## 3. Directory Structure
+### `lua/core/deps.lua`
+**Philosophy:** Imperative Package Management
+Ensures the presence of 'mini.deps' and initializes the global 'MiniDeps' handle. It automates installation and manages the runtime path.
 
-This configuration uses a strictly categorized modular structure to separate core editor logic from plugin-specific setup, mirroring the functional groups in this README.
+### `lua/core/format.lua`
+**Philosophy:** Native-First Formatting Architecture
+Bypasses "middleman" plugins for direct CLI/LSP control using `BufWritePre` and `vim.system`. Includes fallback formatting and whitespace eradication.
 
-```plaintext
-~/.config/nvim/
-├── init.lua
-└── lua/
-    ├── core/
-    │   ├── settings/
-    │   │   ├── options.lua
-    │   │   ├── keymaps.lua
-    │   │   ├── autocmds.lua
-    │   │   └── commands.lua
-    │   ├── format.lua
-    │   └── lint.lua
-    ├── plugins/
-    │   ├── ui/
-    │   │   ├── init.lua      # Noice, Nui setup
-    │   │   ├── colors.lua
-    │   │   ├── which-key.lua
-    │   │   └── treesitter.lua
-    │   ├── lsp/
-    │   │   ├── init.lua      # Core lspconfig
-    │   │   └── completion.lua # blink.cmp
-    │   ├── editing/
-    │   │   ├── mini.lua      # mini.nvim loader
-    │   │   ├── mini/         # individual mini modules
-    │   │   ├── smart-splits.lua
-    │   │   ├── refactoring.lua
-    │   │   ├── tabout.lua
-    │   │   └── indent.lua
-    │   ├── finding/
-    │   │   └── telescope.lua
-    │   ├── git/
-    │   │   └── lazygit.lua
-    │   ├── workflow/
-    │   │   ├── harpoon.lua
-    │   │   ├── toggleterm.lua
-    │   │   ├── vim-be-good.lua
-    │   │   └── yazi.lua
-    │   ├── notetaking/
-    │   │   ├── obsidian.lua  # JIT-loaded Obsidian
-    │   │   ├── luasnips.lua  # JIT-loaded Snippet Engine
-    │   │   ├── history.lua   # mini.visits & extra
-    │   └── dap/
-    │       └── debug.lua
-    └── snippets/
-        └── latex.lua         # Massive 150+ Snippet Payload
-```
+### `lua/core/init.lua`
+**Philosophy:** Fault-Tolerant System Boot
+Orchestrates core module loading via `pcall` to prevent cascading failures. Implements a self-correcting hot-reload mechanism.
 
-## 4. The Plugin Ecosystem
+### `lua/core/keymaps.lua`
+**Philosophy:** Home-Row Efficiency
+Prioritizes hands-on-home-row navigation and surgical window management.
 
-### Core LSP, Completion & Formatting (Native-First)
-- **`neovim/nvim-lspconfig`**: Core setup for Language Server Protocol integrations. Now directly configures `vim.lsp.config`.
-- **`saghen/blink.cmp`**: High-performance, low-latency autocompletion engine (with native snippet engine). Loaded on `VimEnter`. Keymaps: `<C-j>` (next), `<C-k>` (prev), `<C-l>` (accept).
-- **`folke/lazydev.nvim`**: Specialized setup for Neovim Lua API completions (dependency for `blink.cmp`).
-- **`rafamadriz/friendly-snippets`**: Standard boilerplate snippets for all languages (dependency for `blink.cmp`).
-- **`j-hui/fidget.nvim`**: Unobtrusive UI for LSP progress (the spinner in the corner).
-- **Native Formatting Bridge (`core/format.lua`)**: Replaces `conform.nvim`. Uses `vim.system()` for CLI formatters (`stylua`, `oxfmt`, `markdownlint-cli2`) and `vim.lsp.buf.format()` for LSP-driven formatting, with cursor position preservation.
-- **Native Diagnostic Bridge (`core/lint.lua`)**: Replaces `mfussenegger/nvim-lint`. Uses `vim.system()` to run async CLI linters (`shellcheck`, `markdownlint-cli2`) and injects results into `vim.diagnostic.set()`.
+### `lua/core/libs.lua`
+**Philosophy:** Pre-emptive Injection
+Ensures foundational libraries like `plenary.nvim` are available globally before high-level plugins load.
 
-### Notetaking & Second Brain (JIT-Loaded)
-- **`epwalsh/obsidian.nvim`**: Zero-overhead integration. Bootstrapped only when opening Markdown files or via `<leader>o` stubs. Integrated with `mini.pick` to prevent Telescope bloat. Keymaps: `<leader>oq` (Quick Switch), `<leader>os` (Search), `<leader>on` (New Note), `gf` (Follow Link), `<leader>ov` (V-Split Link), `<leader>oh` (H-Split Link).
-- **`L3MON4D3/LuaSnip`**: High-performance, LaTeX auto-expansion engine. JIT loaded only for Markdown/TeX files to preserve sub-30ms startup. Keymaps: `<Tab>` (expand/jump), `<S-Tab>` (jump back).
-- **`LaTeX Suite (snippets/latex.lua)`**: A custom, 200+ snippet payload for sub-millisecond LaTeX entry, featuring context-aware math zone detection, programmatic Greek and symbol generation, boundary-safe operators (e.g., `in`, `sum`), auto-backslashing, and visual wrappers (e.g., `underbrace`).
-- **`mini.visits` & `mini.extra`**: Automated history tracking for files. Keymaps: `<leader>fr` (Find Recent), `<leader>fc` (Contextual History), `<leader>so` (Omnisearch).
+### `lua/core/lint.lua`
+**Philosophy:** Native-First Diagnostic Bridge
+Bypasses monolithic linting plugins by executing CLI linters asynchronously via `vim.system` and parsing results directly into Neovim diagnostics.
 
-### Navigation & Core Editing
-- **`mrjones2014/smart-splits.nvim`**: Seamlessly navigates between Neovim splits and Zellij panes for both movement (`<C-h/j/k/l>`) and resizing (`<M-h/j/k/l>`). Utilizes a hotswap stub pattern to defer loading.
-- **`abecodes/tabout.nvim`**: Uses `<C-l>` (Deterministic Escape Hatch) to seamlessly jump out of brackets and quotes. Immediately loaded.
-- **`echasnovski/mini.nvim`**: Core editing suite replacing dozens of plugins:
-  - `mini.ai`: Advanced text objects (`va)`, `yinq`).
-  - `mini.surround`: Add/delete/replace surroundings (brackets, quotes).
-  - `mini.pairs`: Minimal, fast auto-closing of brackets/quotes.
-  - `mini.bracketed`: Essential `[ ]` navigation for buffers, quickfix, and history.
-  - `mini.move`: Visual selection movement via `<Alt-hjkl>`. 
-  - `mini.indentscope`: Visual vertical lines for indentation. 
-  - `mini.icons`: Fast, cached icons (mocking `nvim-web-devicons`).
-  - `mini.diff`: Git diff markers in the gutter and toggleable diff overlay. 
-  - `mini.statusline`: High-performance statusline with `mise` environment status. 
-  - `mini.tabline`: Minimalist tabline.
-  - `mini.files`: Fast, tree-style file explorer.
-  - `mini.pick`: Omnisearch and Obsidian integration.
-- **`ThePrimeagen/refactoring.nvim`**: Advanced, automated codebase refactoring (extract, inline, etc.). Deferred via keymap stubs.
-- **`ThePrimeagen/harpoon`**: Instant file marking and jumping. Uses Alt (Meta) keys.
+### `lua/core/options.lua`
+**Philosophy:** Environment Prioritization
+Prioritizes `mise` shims and configures essential editor behavior (numbers, clipboard, splits, encoding).
 
-### Telescope (Fuzzy Finding)
-- **`nvim-telescope/telescope.nvim`**: Highly extensible fuzzy finder for files, strings, and LSP symbols. Deferred via JIT keymap stubs. Keymaps: `<leader>ff` (Find Files), `<leader>rr` (LSP References), `<leader>gd` (LSP Definitions), `<leader>ws` (LSP Workspace Symbols).
-- **`jvgrootveld/telescope-zoxide`**: Integration with Zoxide for rapid directory hopping. Keymap: `<leader>cd` (Change Directory).
-- **`nvim-telescope/telescope-fzf-native.nvim`**: C-port of fzf for dramatically faster Telescope searches.
-- **`nvim-telescope/telescope-ui-select.nvim`**: Reroutes standard Neovim UI popups into Telescope.
+### `lua/core/utils.lua`
+**Philosophy:** Anti-Fragility
+Shared utilities for binary resolution (prioritizing `mise`) and persistent diagnostic logging.
 
-### Git Integration
-- **`kdheepak/lazygit.nvim`**: Terminal UI for Git. Gracefully mapped to your `mise` binary. Deferred via keymap stub. Keymap: `<leader>gg`.
-- **`mini.diff` (part of `mini.nvim`)**: Shows git diff markers in the gutter and provides a toggleable diff overlay. Keymap: `<leader>gd`.
+### `lua/autocmd/basic.lua`
+**Philosophy:** Protected Event Loops
+Non-blocking hooks for UI feedback (yank highlight), layout (auto-resize), and I/O (auto-create directories).
 
-### UI & Aesthetics
-- **`catppuccin/nvim` (Mocha)**: Primary high-contrast, modern colorscheme. Immediately loaded.
-- **`folke/noice.nvim`**: Modern, high-contrast floating UI for the command line, search, and messages. Loaded on `VimEnter`.
-- **`folke/which-key.nvim`**: Popup keybinding discovery menu. Deferred via `VimEnter` autocmd. Keymap: `<leader>?` (Show Workflow Cheatsheet).
+### `lua/autocmd/external.lua`
+**Philosophy:** Resource Protection
+Uses "Defensive Interceptors" to handle massive files (disabling LSP/Treesitter) and binary archives (using `ouch` for listing).
 
-### Utilities & Diagnostics (CLI Integrations)
-- **`NMAC427/guess-indent.nvim`**: Detects and applies the correct indentation size. Deferred via `BufReadPre`.
-- **`gojq` (`:Jq`)**: Live scratchpad to query JSON. Command: `:Jq <query>`.
-- **`ouch` (Transparent Archive Explorer)**: Intercepts archive file openings (`.zip`, `.tar.gz`, etc.) and displays contents. Automatic.
-- **`sd` (`:Sd`)**: Surgical regex find-and-replace. Command: `:Sd <find> <replace>`.
-- **`xh` (`:Xh`)**: HTTP client. Command: `:Xh <request_args>`.
-- **`glow` (`<leader>tm`)**: Floating Markdown preview. Keymap: `<leader>tm`.
-- **`aider-chat` (`<leader>ta`)**: Context-aware AI pair programmer. Keymap: `<leader>ta`.
-- **`watchexec` (`:Watch`)**: Continuous execution daemon. Command: `:Watch <command>`.
-- **`podman-tui` (`<leader>ti`)**: Floating TUI for container management. Keymap: `<leader>ti`.
-- **`jless` (`:Jless`)**: Structural JSON viewer. Command: `:Jless`.
-- **`typos-cli` (`:Typos`)**: Project-wide spell checker. Command: `:Typos`.
-- **`bottom` (`<leader>vp`)**: CLI process monitor.
-- **`spotify_player` (`<leader>vs`)**: CLI Spotify player.
+### `lua/autocmd/init.lua`
+**Philosophy:** Fault-Tolerant Module Loading
+Dispatcher for all custom autocommands with instant hot-reloading on save.
 
-### Debugging (DAP)
-- **`mfussenegger/nvim-dap`**: Core Debug Adapter Protocol client. Keymap: `<F5>` (Start/Continue), `<leader>b` (Toggle Breakpoint), `<leader>du` (Toggle UI).
-- **`rcarriga/nvim-dap-ui`**: Visual debugging interface overlay.
-- **PlatformIO Hardware Debug**: Restored custom configuration for LLDB/OpenOCD. Deferred via keymap stubs.
+### `lua/autocmd/jit.lua`
+**Philosophy:** Asymmetric Resource Allocation
+Implements stubs and proxy autocmds to defer loading heavy modules (Obsidian, LuaSnip) until required.
 
-## 5. Neovim Key Notation (Cheat Sheet)
+### `lua/commands/auditing.lua`
+**Philosophy:** Dependency Auditing
+Provides `:ToolCheck` for environment validation and `:Redir` for capturing command output.
 
-- **`<C-...>`**: Control key (e.g., `<C-l>` means `Ctrl + l`)
-- **`<M-...>`** / **`<A-...>`**: Meta or Alt key (e.g., `<M-j>` means `Alt + j`)
-- **`<S-...>`**: Shift key (e.g., `<S-Tab>` means `Shift + Tab`)
-- **`<CR>`**: Carriage Return (the `Enter` key)
-- **`<Esc>`**: Escape key
-- **`<leader>`**: The designated Leader key (mapped to **`Spacebar`**).
+### `lua/commands/building.lua`
+**Philosophy:** Process Handoff
+Offloads heavy compilation/execution to Zellij panes, keeping Neovim responsive.
 
-## 6. Three-Tiered Navigation Architecture
+### `lua/commands/diagnostics.lua`
+**Philosophy:** Managed Intelligence
+Toggles for visual noise (virtual text, underlines) and intelligent routing of workspace errors to Trouble/Quickfix.
 
-1. **Tier 1: Global Layer (Zoxide)**: Macro-navigation between projects via `<leader>cd`.
-2. **Tier 2: Discovery Layer (Telescope / Mini.files)**: Locating files within a project via `<leader>ff` or `<leader>e` (`-` for parent directory).
-3. **Tier 3: Action Layer (Harpoon 2)**: Instant jumps between tight coupled files via `<leader>a` (add) and `Ctrl-1` to `Ctrl-4` (jump).
+### `lua/commands/init.lua`
+**Philosophy:** Sandboxed Execution
+Central dispatcher for user commands using `pcall` for absolute crash resistance.
 
-## 7. Key Workflows
+### `lua/commands/mux.lua`
+**Philosophy:** RPC-based Layout Control
+Orchestrates terminal environments via Zellij's 'action' CLI instead of built-in terminals.
 
-### Obsidian JIT Flow
-Pressing `<leader>oq`, `<leader>os`, or `<leader>on` dynamically boots Obsidian.nvim, configures your vault at `~/Documents/Obsidian`, and executes the command. Opening any Markdown file also triggers an automatic, once-per-session boot to ensure note-taking tools are ready. Buffer-local keymaps like `gf` (follow link) and `<leader>ov`/`<leader>oh` (split links) are available within notes.
+### `lua/commands/utilities.lua`
+**Philosophy:** CLI Workbench
+Transforms Neovim into a high-performance workbench for tools like `gojq`, `sd`, and `xh`.
 
-### Omnisearch & History
-- **`<leader>so`**: [S]earch [O]mni. Uses `mini.pick` and `ripgrep` for full-text indexing across the vault.
-- **`<leader>fr`**: [F]ind [R]ecent Files (Global).
-- **`<leader>fc`**: [F]ind [C]ontextual (Directory-scoped visits).
+### `lua/plugins/dap/debug.lua`
+**Philosophy:** Action-Triggered Instrumentation
+DAP remains dormant until a breakpoint is set. Includes PlatformIO-specific hardware debugging logic.
 
-### The Dependency Audit (`:ToolCheck`)
-Run `:ToolCheck` to scan for required binaries. It provides a pass/fail checklist and `mise install` commands for missing tools.
+### `lua/plugins/dap/init.lua`
+**Philosophy:** The "Second Brain" Principle
+Dispatcher for the DAP domain with circuit-breaker loading.
 
-### Smart Auto-Pair & Tab-Out
-`mini.pairs` handles closing. `<C-j>` expands LuaSnip snippets or jumps to the next node. `<C-k>` jumps to the previous node. `<C-l>` is the **Deterministic Escape Hatch** that unconditionally jumps out of brackets without triggering snippets. `<Tab>` is now exclusively for `blink.cmp` completion navigation and acceptance.
+### `lua/plugins/dap/nvim-dap-virtual-text.lua`
+**Philosophy:** Zero-Latency State Mapping
+Renders variable values directly in the buffer virtual space.
 
-### AI & Continuous Execution
-- **AI Pair Programmer (`<leader>ta`)**: Toggles a floating terminal with `aider-chat`. The current file's path is automatically injected into `aider`'s context.
-- **Continuous Execution (`:Watch <cmd>`)**: Uses `watchexec` to re-run commands (e.g., tests) on file save.
+### `lua/plugins/editing/inc-rename.lua`
+**Philosophy:** Precision JIT Loading
+Loads LSP renaming logic only when `<leader>rn` is pressed.
 
-## ⚠️ Architectural Conflicts
+### `lua/plugins/editing/indent.lua`
+**Philosophy:** Defer to Buffer Read
+Automatic indentation detection that activates only when a file is opened.
 
-1. **`s` Key Override (Mini.surround):** `mini.surround` maps `s` (e.g., `saiw)`) which shadows the native Vim `s` command (Substitute character). Retrain muscle memory to use `cl` or map `mini.surround` to a distinct prefix.
-2. **`<C-l>` Multimodal Overloading:** In Normal mode, it moves focus to the right window (`plugins/editing/smart-splits.lua`). In Insert mode, it's the Deterministic Escape Hatch for `tabout.nvim` (`plugins/editing/tabout.lua`). Modal context separation makes this safe, but mind the mental shift.
-3. **`<Esc>` Native Override:** In Normal mode, it clears search highlights (`:nohlsearch`). Masks the native terminal bell/escape sequence but greatly improves usability.
-4. **`<C-e>` Completion Overloading:** In Insert mode, it hides the completion menu in `blink.cmp`. This is safe modal separation.
+### `lua/plugins/editing/indentscope.lua`
+**Philosophy:** Visual Indentation Feedback
+Uses `mini.indentscope` for high-performance visual guides.
+
+### `lua/plugins/editing/mini-hipatterns.lua`
+**Philosophy:** Non-Blocking Visual Cues
+Asynchronous semantic highlighting for patterns like TODO, FIXME, and HEX colors.
+
+### `lua/plugins/editing/mini-move.lua`
+**Philosophy:** Ergonomic Refactoring
+Visual block movement with automatic scope-aware re-indentation.
+
+### `lua/plugins/editing/pairs.lua`
+**Philosophy:** Context-Aware Typing Automation
+Managing auto-pairs with specific exclusions for terminal and command modes.
+
+### `lua/plugins/editing/refactoring.lua`
+**Philosophy:** Action-Driven JIT Execution
+Heavy AST-based refactoring tools load only during active transformation tasks.
+
+### `lua/plugins/editing/surround.lua`
+**Philosophy:** Surroundings as Objects
+Surgical manipulation of quotes, brackets, and tags using the `gz` prefix.
+
+### `lua/plugins/finding/aerial.lua`
+**Philosophy:** Spatial Awareness
+Persistent, hierarchical view of symbols with Treesitter/LSP backends.
+
+### `lua/plugins/finding/init.lua`
+**Philosophy:** Centralized Discovery
+Master orchestrator for search engines (Telescope, Aerial).
+
+### `lua/plugins/git/diff.lua`
+**Philosophy:** Immediate Context
+Ambient awareness of Git changes via sign column cues.
+
+### `lua/plugins/git/init.lua`
+**Philosophy:** Ambient Versioning
+Unified Git status and manipulation without context switching.
+
+### `lua/plugins/git/lazygit.lua`
+**Philosophy:** Seamless Context-Switch
+Floating integration of the high-performance Lazygit TUI.
+
+### `lua/plugins/lsp/blink.lua`
+**Philosophy:** Pre-Emptive Capability Injection
+High-performance autocompletion that broadcasts capabilities before servers attach.
+
+### `lua/plugins/lsp/init.lua`
+**Philosophy:** The "Second Brain" Principle
+Dispatcher for the LSP domain with synchronous-priority completion.
+
+### `lua/plugins/lsp/native-lsp.lua`
+**Philosophy:** Native Capability Injection
+Uses Neovim 0.10's native `vim.lsp.config` for the lowest possible memory overhead.
+
+### `lua/plugins/navigation/harpoon.lua`
+**Philosophy:** Stub and Hotswap
+Stateless navigation that overwrites its own keymaps with high-performance native calls upon first use.
+
+### `lua/plugins/navigation/history.lua`
+**Philosophy:** Pain-Driven History
+Navigates by recency and frequency via `mini.visits` and `mini.pick`.
+
+### `lua/plugins/navigation/mini-bracketed.lua`
+**Philosophy:** Implicit Structural Jumps
+Native-feeling bracketed motions for buffers and diagnostics.
+
+### `lua/plugins/navigation/smart-splits.lua`
+**Philosophy:** Anti-Fragile Proxy Execution
+Directional movement and resizing that bridges Neovim and Zellij.
+
+### `lua/plugins/navigation/tabout.lua`
+**Philosophy:** Seamless Typing Flow
+Tab-driven escape hatch from brackets/quotes with intelligent completion yielding.
+
+### `lua/plugins/notetaking/luasnips.lua`
+**Philosophy:** JIT Setup
+Aggressive snippet auto-expansion engine for Markdown and LaTeX.
+
+### `lua/plugins/ui/mini-colors.lua`
+**Philosophy:** Synchronous Safe Rendering
+Catppuccin Mocha theme with robust native fallback.
+
+### `lua/plugins/ui/mini-icons.lua`
+**Philosophy:** Ubiquitous Visual Anchors
+foundation icons with `nvim-web-devicons` polyfill.
+
+### `lua/plugins/ui/mini-starter.lua`
+**Philosophy:** Zero-Friction Ignition
+Instant dashboard with dynamic quotes and project shortcuts.
+
+### `lua/plugins/ui/mini-statusline.lua` / `mini-tabline.lua`
+**Philosophy:** Peripheral Pattern Recognition
+Minimalistheads-up display for editor state and workspace working set.
+
+### `lua/plugins/ui/noice.lua`
+**Philosophy:** Immediate UI Interception
+Replaces legacy UI for messages, cmdline, and popups.
+
+### `lua/plugins/workflow/init.lua`
+**Philosophy:** Mise-en-Place
+Ensures all tools and sessions are ready for use.
+
+### `lua/plugins/workflow/overseer.lua`
+**Philosophy:** Asynchronous Industrialization
+Background task orchestration and project monitoring.
+
+### `lua/plugins/workflow/persistence.lua`
+**Philosophy:** Automatic State Recovery
+Automated session management and workspace restoration.
+
+### `lua/plugins/workflow/toggleterm.lua`
+**Philosophy:** Action-Driven JIT Infrastructure
+modular TUI factory for Lazygit, Spotify, and more.
+
+### `lua/plugins/workflow/vim-be-good.lua`
+**Philosophy:** Zero-Overhead Skill Development
+Motion training engine that exists as a "Ghost Command" until used.
+
+## The Keymap Registry
+
+| Mode(s) | Keybind           | Description                         |
+|---------|-------------------|-------------------------------------|
+| n       | `<leader><space>` | Clear search highlights             |
+| t       | `<Esc><Esc>`      | Exit terminal mode                  |
+| n       | `<leader>wv`      | Window: [V]ertical Split            |
+| n       | `<leader>ws`      | Window: [S]plit Horizontal          |
+| n       | `<leader>wq`      | Window: [Q]uit Current              |
+| n       | `<leader>wo`      | Window: [O]nly (Close others)       |
+| n       | `<leader>w=`      | Window: [=] Equalize Sizes          |
+| n       | `<leader>wx`      | Window: [X] Swap Next               |
+| n       | `k`               | Move visually (word wrap)           |
+| n       | `j`               | Move visually (word wrap)           |
+| n       | `<leader>rn`      | [R]e[n]ame Symbol (JIT)             |
+| n       | `<leader>?`       | Show Workflow Cheatsheet            |
+| n, v    | `<leader>cf`      | [F]ormat buffer                     |
+| n       | `<leader>oq`      | Obsidian: Quick Switch (JIT)        |
+| n       | `<leader>os`      | Obsidian: Search (JIT)              |
+| n       | `<leader>on`      | Obsidian: New Note (JIT)            |
+| n       | `<leader>ut`      | [T]ool [C]heck (Mise)               |
+| n       | `<leader>xt`      | Run Project [T]ypos                 |
+| n       | `<leader>cx`      | Code Execute (Continuous Watch)     |
+| n       | `<leader>cr`      | Code Run (Single Interactive)       |
+| n       | `<leader>vw`      | View: [W]atchexec (Manual)          |
+| n       | `<leader>dL`      | [T]oggle [V]irtual Text             |
+| n       | `<leader>dU`      | [T]oggle [U]nderlines               |
+| n       | `<leader>q`       | Open diagnostic Quickfix            |
+| n       | `<leader>zv`      | Zellij: Vertical Split              |
+| n       | `<leader>zs`      | Zellij: Horizontal Split            |
+| n       | `<leader>zf`      | Zellij: Floating Pane               |
+| n       | `<leader>zq`      | Zellij: Close Pane                  |
+| n       | `<leader>vq`      | JQ: Live Scratchpad                 |
+| n       | `<leader>sr`      | Search & Replace (SD)               |
+| n       | `<leader>vx`      | XH: HTTP Client                     |
+| n       | `<leader>vj`      | JLess: JSON Viewer                  |
+| n       | `<Esc>`           | Clear search highlights             |
+| n       | `<leader>yp`      | Yank Absolute Path                  |
+| n       | `<leader>yr`      | Yank Relative Path                  |
+| n       | `<leader>ur`      | Restart LSP                         |
+| n       | `H`               | Previous Buffer                     |
+| n       | `L`               | Next Buffer                         |
+| n       | `<leader>bd`      | [B]uffer [D]elete                   |
+| n, x    | `<leader>rr`      | Refactor: Select (UI)               |
+| x       | `<leader>re`      | Refactor: Extract Variable          |
+| x       | `<leader>rf`      | Refactor: Extract Function          |
+| n, x    | `<leader>ri`      | Refactor: Inline Variable           |
+| v, V    | `<M-h/j/k/l>`     | Move highlighted block              |
+| n       | `gz[a/d/r/f/F/h/n]`| Surround manipulation              |
+| n       | `<leader>va`      | Toggle Aerial Structure             |
+| n       | `<leader>ff`      | Search: Find Files                  |
+| n       | `<leader>sg`      | Search: Live Grep                   |
+| n       | `]c` / `[c`       | Next/Prev Git Change                |
+| n       | `<leader>gg`      | Lazygit TUI                         |
+| n       | `<leader>db`      | Toggle Persistent Breakpoint        |
+| n       | `<leader>dc`      | Start/Continue Debugging            |
+| i       | `<C-j/k/l/h>`     | Completion navigation               |
+| n       | `<M-a>` / `<M-e>`  | Harpoon: Mark / UI                 |
+| n       | `<leader>so`      | OmniSearch (Ripgrep)                |
+| n, t    | `<C-h/j/k/l>`     | Smart Pane Move                     |
+| n, t    | `<M-h/j/k/l>`     | Smart Pane Resize                   |
+| n       | `<leader>y`       | Yazi Explorer                       |
+| i, s    | `<C-j/k>`         | Snippet Expand/Jump                 |
+| n       | `<leader>ot/or/oi`| Overseer: Toggle/Run/Info           |
+| n       | `<leader>qs/ql`   | Session: Restore Current/Last       |
+| n, t    | `<C-\>`           | Toggle Terminal                     |
+| n       | `<leader>pb/pu/pm`| PIO: Build/Upload/Monitor           |
+
+## The Dependency Graph
+
+### Plugins (via `mini.deps`)
+
+*   `echasnovski/mini.deps` (Infrastructure)
+*   `echasnovski/mini.icons` (Icons & Web-Devicons Polyfill)
+*   `echasnovski/mini.nvim` (Provides: `ai`, `bracketed`, `diff`, `extra`, `files`, `hipatterns`, `indentscope`, `move`, `pairs`, `pick`, `starter`, `statusline`, `surround`, `tabline`, `visits`)
+*   `nvim-lua/plenary.nvim` (Stdlib)
+*   `folke/lazydev.nvim` (Lua API Intelligence)
+*   `saghen/blink.cmp` (Completion Engine)
+*   `neovim/nvim-lspconfig` (LSP Stub Registry)
+*   `j-hui/fidget.nvim` (LSP Progress)
+*   `nvim-treesitter/nvim-treesitter` (Parsing Engine)
+*   `ThePrimeagen/harpoon` (Navigation)
+*   `mrjones2014/smart-splits.nvim` (Multiplexer Integration)
+*   `abecodes/tabout.nvim` (Typing Flow)
+*   `mikavilpas/yazi.nvim` (File Management)
+*   `L3MON4D3/LuaSnip` (Snippet Engine)
+*   `epwalsh/obsidian.nvim` (Notetaking)
+*   `catppuccin/nvim` (Colorscheme)
+*   `folke/noice.nvim` (UI Replacement)
+*   `folke/trouble.nvim` (Diagnostic Aggregator)
+*   `folke/which-key.nvim` (Keymap Discovery)
+*   `stevearc/overseer.nvim` (Task Runner)
+*   `folke/persistence.nvim` (Session Management)
+*   `akinsho/toggleterm.nvim` (Terminal Management)
+*   `ThePrimeagen/vim-be-good` (Training)
+*   `mfussenegger/nvim-dap` (Debugger)
+
+### External Binaries (via `mise`)
+
+*   **Languages/LSPs:** `pyright`, `ruff`, `rust-analyzer`, `gopls`, `zls`, `clangd`, `lua-language-server`, `marksman`, `taplo`, `bash-language-server`.
+*   **Formatters/Linters:** `stylua`, `oxfmt`, `markdownlint-cli2`, `shellcheck`.
+*   **Utilities:** `rg`, `fd`, `make`, `gcc`, `lazygit`, `btm`, `dlv`, `watchexec`, `uv`, `go`, `zig`, `zellij`, `gojq`, `sd`, `xh`, `eza`, `bat`, `zoxide`, `cargo`, `curl`, `spotify_player`, `podman-tui`, `aider`, `glow`, `pio`.
