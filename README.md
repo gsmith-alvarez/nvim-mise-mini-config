@@ -1,3 +1,5 @@
+It's kind of broken right now I have to go through things fyi
+
 # Ground Truth Neovim Configuration
 
 This README documents the architecture, logic, keybindings, and dependencies of this high-performance, net-multiplier Neovim configuration.
