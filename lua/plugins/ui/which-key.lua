@@ -37,9 +37,10 @@ vim.api.nvim_create_autocmd('VimEnter', {
         { '<leader>s', group = '🔍 Search' },
         { '<leader>t', group = '⚙️ Toggles' },
         { '<leader>v', group = '👁️ View' },
-        { '<leader>w', group = '🪟 Window' },
-        { '<leader>x', group = '❌ Trouble' },
+
         { '<leader>u', group = '🎨 UI Utils' },
+        { '<leader>z', group = '🧱 Zellij' },
+        { "<leader>b", group = "󰓩 Buffers" },
 
         -- [[ TOGGLES & DASHBOARD ]]
         { '<leader>tm', desc = '📝 Markdown Preview' },
@@ -54,8 +55,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
         { '<leader>q', desc = '🗒️ Open diagnostic [Q]uickfix list' },
 
         -- [[ DEBUGGING ]]
-        { '<leader>b', desc = '🔴 Toggle Breakpoint' },
-        { '<leader>B', desc = '🔴 Set Breakpoint (Conditional)' },
         { '<leader>du', desc = 'Toggle DAP UI' },
         { '<leader>dr', desc = 'Toggle DAP REPL' },
 
@@ -85,12 +84,17 @@ vim.api.nvim_create_autocmd('VimEnter', {
         { '<leader>sn', desc = '[S]earch [N]eovim files' },
         { '<leader><leader>', desc = '[ ] Find existing buffers' },
         { '<leader>cd', desc = '[C]hange [D]irectory (Zoxide)' },
-        
+
+        -- [[ Code ]]
+        { '<leader>cx', desc = '󱓞 [C]ode [X]ecute (Watch Mode)' },
+        { '<leader>cr', desc = '󰑮 [C]ode [R]un (Interactive)' },
+        { '<leader>cf', desc = '✨ [C]ode [F]ormat Buffer' },
+
         -- [[ UI UTILITIES ]]
         { '<leader>y', desc = '🖼️ Yazi File Manager' }
       },
     })
-    
+
     -- Self-destruct the autocommand.
     vim.api.nvim_clear_autocmds({ group = 'MiniDeps_WhichKey' })
   end,

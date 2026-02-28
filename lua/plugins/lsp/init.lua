@@ -40,7 +40,30 @@ vim.api.nvim_create_autocmd('VimEnter', {
       rust_analyzer = { bin_name = 'rust-analyzer' },
       bashls = { bin_name = 'bash-language-server', cmd_args = { 'start' } },
       jsonls = { bin_name = 'vscode-json-languageserver', cmd_args = { '--stdio' } },
-      lua_ls = { bin_name = 'lua-language-server', settings = { Lua = { completion = { callSnippet = 'Replace' } } } },
+
+      lua_ls = {
+        bin_name = 'lua-language-server',
+        settings = {
+          Lua = {
+            runtime = {
+              version = 'LuaJIT',
+            },
+            diagnostics = {
+              globals = { 'vim' },
+            },
+            workspace = {
+              -- This makes the server aware of Neovim's built-in functions
+              library = vim.api.nvim_get_runtime_file("", true),
+              checkThirdParty = false,
+            },
+            completion = {
+              callSnippet = 'Replace',
+            },
+            telemetry = { enable = false },
+          },
+        },
+      },
+
       marksman = { bin_name = 'marksman', cmd_args = { 'server' } },
       gopls = { bin_name = 'gopls' },
       ts_ls = { bin_name = 'typescript-language-server', cmd_args = { '--stdio' } },
@@ -76,7 +99,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
         local map = function(keys, func, desc, mode)
           vim.keymap.set(mode or 'n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
         end
-        map('<leader>cr', vim.lsp.buf.rename, '[R]e[n]ame')
+        map('<leader>cn', vim.lsp.buf.rename, 'Re[n]ame')
         map('<leader>ca', vim.lsp.buf.code_action, 'Code [A]ctions', { 'n', 'x' })
 
         -- Telescope-dependent mappings
