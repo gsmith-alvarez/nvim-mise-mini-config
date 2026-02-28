@@ -1,0 +1,1 @@
+sed -i '/vim.api.nvim_create_autocmd({ '\''BufReadPre'\'', '\''BufNewFile'\'' }, {/,/desc = '\''JIT Load Intelligence and Debugging Domains'\'',/d' /home/gsmith-alvarez/.config/nvim/lua/plugins/init.lua

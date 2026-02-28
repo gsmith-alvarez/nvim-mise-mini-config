@@ -10,86 +10,73 @@ local M = {}
 local utils = require('core.utils')
 
 -- [[ THE BOOTSTRAPPER ]]
--- We utilize 'BufReadPre' to ensure servers are registered BEFORE 
--- the buffer attempts to attach a client.
-local group = vim.api.nvim_create_augroup('LSP_Config', { clear = true })
+local ok, err = pcall(function()
+  local MiniDeps = require('mini.deps')
+  
+  -- 1. Infrastructure Registration
+  MiniDeps.add('neovim/nvim-lspconfig') -- Required for server-specific logic stubs
+  MiniDeps.add('j-hui/fidget.nvim')    -- Visual LSP progress notifications
 
-vim.api.nvim_create_autocmd({ 'BufReadPre', 'BufNewFile' }, {
-  group = group,
-  pattern = '*',
-  callback = function()
-    local ok, err = pcall(function()
-      local MiniDeps = require('mini.deps')
-      
-      -- 1. Infrastructure Registration
-      MiniDeps.add('neovim/nvim-lspconfig') -- Required for server-specific logic stubs
-      MiniDeps.add('j-hui/fidget.nvim')    -- Visual LSP progress notifications
+  require('fidget').setup({})
 
-      require('fidget').setup({})
+  -- 2. Capability Resolution
+  -- We explicitly pull capabilities from our blink.cmp engine.
+  local capabilities = vim.lsp.protocol.make_client_capabilities()
+  local has_blink, blink = pcall(require, 'blink.cmp')
+  if has_blink then
+    capabilities = blink.get_lsp_capabilities(capabilities)
+  end
 
-      -- 2. Capability Resolution
-      -- We explicitly pull capabilities from our blink.cmp engine.
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      local has_blink, blink = pcall(require, 'blink.cmp')
-      if has_blink then
-        capabilities = blink.get_lsp_capabilities(capabilities)
-      end
+  -- 3. The Server Registry
+  -- Maps lspconfig names to mise binary shims.
+  local servers = {
+    clangd   = { bin = 'clangd', ft = { 'c', 'cpp' }, root = { 'compile_commands.json', '.git' } },
+    gopls    = { bin = 'gopls', ft = { 'go' }, root = { 'go.work', 'go.mod', '.git' } },
+    zls      = { bin = 'zls', ft = { 'zig' }, root = { 'zls.json', 'build.zig', '.git' } },
+    pyright  = { bin = 'pyright-langserver', args = { '--stdio' }, ft = { 'python' }, root = { 'pyproject.toml', '.git' } },
+    ruff     = { bin = 'ruff', args = { 'server' }, ft = { 'python' }, root = { 'pyproject.toml', '.git' } },
+    ts_ls    = { bin = 'typescript-language-server', args = { '--stdio' }, ft = { 'typescript', 'javascript' }, root = { 'package.json', '.git' } },
+    lua_ls   = { 
+      bin = 'lua-language-server', 
+      ft = { 'lua' }, 
+      root = { '.luarc.json', '.git' },
+      settings = { Lua = { diagnostics = { globals = { 'vim' } }, workspace = { checkThirdParty = false } } }
+    },
+    -- Formats/Config
+    jsonls   = { bin = 'vscode-json-languageserver', args = { '--stdio' }, ft = { 'json' }, root = { '.git' } },
+    yamlls   = { bin = 'yaml-language-server', args = { '--stdio' }, ft = { 'yaml' }, root = { '.git' } },
+    taplo    = { bin = 'taplo', args = { 'lsp', 'stdio' }, ft = { 'toml' }, root = { '.git' } },
+    bashls   = { bin = 'bash-language-server', args = { 'start' }, ft = { 'sh', 'bash' }, root = { '.git' } },
+    marksman = { bin = 'marksman', args = { 'server' }, ft = { 'markdown' }, root = { '.git' } },
+  }
 
-      -- 3. The Server Registry
-      -- Maps lspconfig names to mise binary shims.
-      local servers = {
-        clangd   = { bin = 'clangd', ft = { 'c', 'cpp' }, root = { 'compile_commands.json', '.git' } },
-        gopls    = { bin = 'gopls', ft = { 'go' }, root = { 'go.work', 'go.mod', '.git' } },
-        zls      = { bin = 'zls', ft = { 'zig' }, root = { 'zls.json', 'build.zig', '.git' } },
-        pyright  = { bin = 'pyright-langserver', args = { '--stdio' }, ft = { 'python' }, root = { 'pyproject.toml', '.git' } },
-        ruff     = { bin = 'ruff', args = { 'server' }, ft = { 'python' }, root = { 'pyproject.toml', '.git' } },
-        ts_ls    = { bin = 'typescript-language-server', args = { '--stdio' }, ft = { 'typescript', 'javascript' }, root = { 'package.json', '.git' } },
-        lua_ls   = { 
-          bin = 'lua-language-server', 
-          ft = { 'lua' }, 
-          root = { '.luarc.json', '.git' },
-          settings = { Lua = { diagnostics = { globals = { 'vim' } }, workspace = { checkThirdParty = false } } }
-        },
-        -- Formats/Config
-        jsonls   = { bin = 'vscode-json-languageserver', args = { '--stdio' }, ft = { 'json' }, root = { '.git' } },
-        yamlls   = { bin = 'yaml-language-server', args = { '--stdio' }, ft = { 'yaml' }, root = { '.git' } },
-        taplo    = { bin = 'taplo', args = { 'lsp', 'stdio' }, ft = { 'toml' }, root = { '.git' } },
-        bashls   = { bin = 'bash-language-server', args = { 'start' }, ft = { 'sh', 'bash' }, root = { '.git' } },
-        marksman = { bin = 'marksman', args = { 'server' }, ft = { 'markdown' }, root = { '.git' } },
+  local configured_servers = {}
+
+  for name, cfg in pairs(servers) do
+    local bin_path = utils.mise_shim(cfg.bin)
+
+    if bin_path then
+      -- Construct native Neovim LSP configuration payload
+      vim.lsp.config[name] = {
+        cmd = { bin_path, unpack(cfg.args or {}) },
+        capabilities = capabilities,
+        filetypes = cfg.ft,
+        root_markers = cfg.root,
+        settings = cfg.settings,
       }
-
-      local configured_servers = {}
-
-      for name, cfg in pairs(servers) do
-        local bin_path = utils.mise_shim(cfg.bin)
-
-        if bin_path then
-          -- Construct native Neovim LSP configuration payload
-          vim.lsp.config[name] = {
-            cmd = { bin_path, unpack(cfg.args or {}) },
-            capabilities = capabilities,
-            filetypes = cfg.ft,
-            root_markers = cfg.root,
-            settings = cfg.settings,
-          }
-          table.insert(configured_servers, name)
-        else
-          utils.soft_notify('LSP server bin missing: ' .. cfg.bin, vim.log.levels.WARN)
-        end
-      end
-
-      -- 4. Enable configured servers globally
-      vim.lsp.enable(configured_servers)
-    end)
-
-    if not ok then
-      utils.soft_notify('LSP Config engine failure: ' .. err, vim.log.levels.ERROR)
+      table.insert(configured_servers, name)
+    else
+      utils.soft_notify('LSP server bin missing: ' .. cfg.bin, vim.log.levels.WARN)
     end
+  end
 
-    -- Self-destruct: Only run once per session
-    vim.api.nvim_clear_autocmds({ group = 'LSP_Config' })
-  end,
-})
+  -- 4. Enable configured servers globally
+  vim.lsp.enable(configured_servers)
+end)
+
+if not ok then
+  utils.soft_notify('LSP Config engine failure: ' .. err, vim.log.levels.ERROR)
+end
 
 -- [[ GLOBAL ATTACH LOGIC ]]
 -- This fires EVERY time a server attaches to a buffer.
