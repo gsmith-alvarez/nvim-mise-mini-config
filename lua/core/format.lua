@@ -33,8 +33,12 @@ local formatters = {
   },
   fish = {
     bin = 'fish_indent',
-    args = { }, -- fish_indent acts as a pure stdin/stdout filter by default
+    args = {}, -- fish_indent acts as a pure stdin/stdout filter by default
   },
+  python = {
+    bin = 'ruff',
+    args = { 'format', '-', '--stdin-filename', '$FILENAME' },
+  }
 }
 
 --- Executes a CLI formatter as a synchronous filter on the current buffer.
@@ -74,15 +78,16 @@ local function format_with_cli(ft)
       -- [[ ASYMMETRIC LEVERAGE: The State-Preservation Hack ]]
       -- 1. Save the current view (cursor position, folds, etc.)
       local saved_view = vim.fn.winsaveview()
-      
+
       -- 2. Replace the buffer text
       vim.api.nvim_buf_set_lines(0, 0, -1, false, output_lines)
-      
+
       -- 3. Restore the view exactly as it was
       vim.fn.winrestview(saved_view)
     end
   else
-    utils.soft_notify('Formatting error (' .. config.bin .. '): ' .. (result.stderr or 'Unknown error'), vim.log.levels.ERROR)
+    utils.soft_notify('Formatting error (' .. config.bin .. '): ' .. (result.stderr or 'Unknown error'),
+      vim.log.levels.ERROR)
   end
 end
 
@@ -94,13 +99,22 @@ function M.autoformat()
   local clients = vim.lsp.get_clients({ bufnr = 0, method = 'textDocument/formatting' })
   if #clients > 0 then
     vim.lsp.buf.format({ async = false, timeout_ms = 1000 })
-    -- We only return if the LSP actually exists. 
-    -- If you want CLI to ALWAYS run even with LSP, remove the return.
-    return 
+    -- We only return if the LSP actually exists.
+    -- If you want CLI to ALWAYS run even with LSP, remove the return.\
+  else
+    -- 2. CLI Fallback: If no LSP handles formatting, use our mise-backed CLI bridge.
+    format_with_cli(ft)
   end
 
-  -- 2. CLI Fallback: If no LSP handles formatting, use our mise-backed CLI bridge.
-  format_with_cli(ft)
+  -- 2. THE GLOBAL FAIL-SAFE: Surgical Whitespace Eradication
+  -- This runs for EVERY file (except Markdown) even if no formatter exists.
+  local excluded_fts = { 'markdown', 'markdown.mdx', 'diff' }
+  if not vim.tbl_contains(excluded_fts, ft) then
+    vim.cmd([[keepjumps keeppatterns silent! %s/\s\+$//e]])
+  end
+
+  -- 3. Final View Restoration
+  vim.fn.winrestview(saved_view)
 end
 
 -- [[ Automated Orchestration ]]
@@ -112,7 +126,7 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   desc = 'Synchronously format buffer on save using native APIs',
 })
 
-vim.keymap.set({'n', 'v'}, '<leader>cf', function()
+vim.keymap.set({ 'n', 'v' }, '<leader>cf', function()
   require('core.format').autoformat()
 end, { desc = '[F]ormat buffer' })
 
