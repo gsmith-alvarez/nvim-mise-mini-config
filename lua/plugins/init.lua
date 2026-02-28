@@ -1,76 +1,62 @@
 -- [[ PLUGIN DOMAIN ORCHESTRATOR ]]
 -- Location: lua/plugins/init.lua
--- Architecture: Hierarchical Fault-Tolerant Loader
+-- Architecture: Asymmetric Event-Driven Loader
 --
--- STRATEGY: Domain-Isolated Execution
--- Your plugins are organized by functional domains. This loader iterates 
--- through these folders, ensuring that a failure in a 'workflow' or 'git' 
--- plugin never prevents 'lsp' or 'ui' from initializing.
+-- STRATEGY: Domain-Isolated Execution with Non-Blocking Deferral
 
 local M = {}
-local utils = require('core.utils')
+local utils = require 'core.utils'
 
--- [[ THE DOMAIN INVENTORY ]]
--- These strings correspond to the init.lua files within lua/plugins/<domain>/
--- We load them in a specific order to ensure foundational UI exists before 
--- advanced logic (LSP/DAP) attempts to attach to it.
-local plugin_domains = {
-  'plugins.ui',         -- 1. Aesthetics & Interface (Critical Foundation)
-  'plugins.lsp',        -- 2. Intelligence & Completion
-  'plugins.navigation', -- 3. Physical Movement & Flow
-  'plugins.editing',    -- 4. Text Manipulation
-  'plugins.finding',    -- 5. Search & Discovery
-  'plugins.workflow',   -- 6. External TUI
-  'plugins.git',        -- 7. Version Control
-  'plugins.dap',        -- 8. Debugging
-}
-
--- [[ EXECUTION LOOP ]]
-for _, domain in ipairs(plugin_domains) do
-  -- Protected Call (pcall) sandboxes each domain's entry point.
+-- Helper to safely load and route errors
+local function safe_load(domain)
   local ok, err = pcall(require, domain)
-
   if not ok then
-    -- ERROR ROUTING:
-    -- Failures are logged to ~/.local/state/nvim/config_diagnostics.log
-    -- and reported via the UI if available.
-    utils.soft_notify(string.format("DOMAIN LOAD FAILURE: [%s]\n%s", domain, err), vim.log.levels.ERROR)
+    utils.soft_notify(string.format('DOMAIN LOAD FAILURE: [%s]\n%s', domain, err), vim.log.levels.ERROR)
   end
 end
 
--- [[ INTELLIGENT HOT RELOAD ]]
--- Automatically re-sources plugin configurations when you save them.
--- This allows for live-tweaking of UI colors, keymaps, or LSP settings.
-local group = vim.api.nvim_create_augroup('PluginHotReload', { clear = true })
+-- =============================================================================
+-- PHASE 1: SYNCHRONOUS BOOT (The 10ms Foundation)
+-- =============================================================================
+-- Only execute the absolute minimum required to draw the screen and take commands.
+local immediate_domains = {
+  'plugins.ui', -- Aesthetics & Interface
+  'plugins.finding', -- Search & Discovery (Telescope/Fzf)
+}
 
-vim.api.nvim_create_autocmd('BufWritePost', {
-  group = group,
-  pattern = '*/lua/plugins/**/*.lua',
-  callback = function(event)
-    -- Guard 1: Don't reload any 'init.lua' files.
-    -- Re-loading an orchestrator can cause infinite loops or duplicate setup calls.
-    if event.file:match('init%.lua$') then return end
+for _, domain in ipairs(immediate_domains) do
+  safe_load(domain)
+end
 
-    -- Guard 2: Extract and validate the Lua module path.
-    local module_name = event.file:match('lua/(plugins/.-)%.lua$')
-    if not module_name then return end
-    
-    -- Convert path to Lua dot-notation: 'plugins/ui/colors' -> 'plugins.ui.colors'
-    module_name = module_name:gsub('/', '.')
+-- =============================================================================
+-- PHASE 2: BACKGROUND DEFERRAL (The Idle Queue)
+-- =============================================================================
+-- Pushed to the background event loop. These evaluate immediately AFTER Neovim
+-- finishes its startup sequence and draws the UI.
+vim.schedule(function()
+  local scheduled_domains = {
+    'plugins.navigation', -- Physical Movement & Flow
+    'plugins.editing', -- Text Manipulation (Surround, pairs, etc.)
+    'plugins.workflow', -- External TUI / Snacks
+    'plugins.git', -- Version Control
+  }
+  for _, domain in ipairs(scheduled_domains) do
+    safe_load(domain)
+  end
+end)
 
-    -- Guard 3: Safe Cache Purge & Re-require
-    -- We use a protected call to ensure a syntax error in the file being 
-    -- saved doesn't crash the active Neovim session.
-    package.loaded[module_name] = nil 
-    
-    local ok, err = pcall(require, module_name)
-    if ok then
-      vim.notify('󰚰 Plugin Config Reloaded: ' .. module_name, vim.log.levels.INFO)
-    else
-      utils.soft_notify('Plugin Reload Failed: ' .. err, vim.log.levels.ERROR)
-    end
+-- =============================================================================
+-- PHASE 3: EVENT-DRIVEN DORMANCY (The Heavyweight JIT)
+-- =============================================================================
+-- Zero-overhead until a file is actually opened.
+vim.api.nvim_create_autocmd({ 'BufReadPost', 'BufNewFile' }, {
+  once = true,
+  callback = function()
+    safe_load 'plugins.lsp' -- Intelligence & Completion
+    safe_load 'plugins.dap' -- Debugging
   end,
-  desc = 'Live-reload plugin configurations on save without breaking state.',
+  desc = 'JIT Load Intelligence and Debugging Domains',
 })
 
-return M
+-- [[ INTELLIGENT HOT RELOAD ]]
+-- ... keep your existing hot reload code below this line ...

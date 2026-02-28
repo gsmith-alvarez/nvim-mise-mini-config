@@ -4,6 +4,10 @@ A quick reference for the keybindings and commands in this configuration.
 
 If you are looking for anymore of them you can use <leader>uk to find all the commands via fzf.
 
+For benchmarking run PROFILE=1 nvim
+
+and then <leader>zp
+
 ---
 
 ## 1. Core Vim Muscle Memory (The "Native" Tier)
