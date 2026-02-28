@@ -19,7 +19,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
     MiniDeps.add('j-hui/fidget.nvim')
     -- blink.cmp is a dependency of completion.lua, ensure it is added here
     MiniDeps.add('saghen/blink.cmp')
-    
+
     local utils = require('core.utils')
     require('fidget').setup({})
 
@@ -66,7 +66,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
         utils.soft_notify('LSP missing (graceful degradation): ' .. config_opts.bin_name, vim.log.levels.WARN)
       end
     end
-    
+
     vim.lsp.enable(configured_servers)
 
     -- Autocommand for LSP features (keymaps, highlights) when an LSP attaches.
@@ -78,25 +78,30 @@ vim.api.nvim_create_autocmd('VimEnter', {
         end
         map('<leader>cr', vim.lsp.buf.rename, '[R]e[n]ame')
         map('<leader>ca', vim.lsp.buf.code_action, 'Code [A]ctions', { 'n', 'x' })
-        
+
         -- Telescope-dependent mappings
         map('<leader>cl', function() require('telescope.builtin').lsp_references() end, '[C]ode [L]SP [R]eferences')
         map('<leader>ci', function() require('telescope.builtin').lsp_implementations() end, '[C]ode [I]mplementations')
-        map('<leader>cd', function() require('telescope.builtin').lsp_definitions() end, '[C]ode [D]efinition')
+        map('<leader>cf', function() require('telescope.builtin').lsp_definitions() end, '[C]ode De[f]inition')
         map('<leader>ct', function() require('telescope.builtin').lsp_type_definitions() end, '[C]ode [T]ype Definition')
         map('<leader>co', function() require('telescope.builtin').lsp_document_symbols() end, 'Open Document Symbols')
-        map('<leader>cw', function() require('telescope.builtin').lsp_dynamic_workspace_symbols() end, 'Open Workspace Symbols')
-        
-        map('<leader>cD', vim.lsp.buf.declaration, '[C]ode [D]eclaration')
-        
+        map('<leader>cw', function() require('telescope.builtin').lsp_dynamic_workspace_symbols() end,
+          'Open Workspace Symbols')
+
+        map('<leader>cc', vim.lsp.buf.declaration, '[C]ode De[c]laration')
+
         local client = vim.lsp.get_client_by_id(event.data.client_id)
         if client and client.server_capabilities.documentHighlightProvider then
           local augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight-defer', { clear = false })
-          vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, { buffer = event.buf, group = augroup, callback = vim.lsp.buf.document_highlight })
-          vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, { buffer = event.buf, group = augroup, callback = vim.lsp.buf.clear_references })
+          vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' },
+            { buffer = event.buf, group = augroup, callback = vim.lsp.buf.document_highlight })
+          vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' },
+            { buffer = event.buf, group = augroup, callback = vim.lsp.buf.clear_references })
         end
         if client and client.server_capabilities.inlayHintProvider then
-          map('<leader>ch', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf })) end, '[C]ode Inlay [H]ints')
+          map('<leader>ch',
+            function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf })) end,
+            '[C]ode Inlay [H]ints')
         end
       end,
     })
