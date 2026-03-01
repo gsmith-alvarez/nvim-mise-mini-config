@@ -87,9 +87,9 @@ end, { desc = 'Toggle Terminal (JIT)' })
 -- 2. TUI Mappings (Workflow Hub)
 local tui_maps = {
   { '<leader>gg', 'lazygit', 'Git Client' },
-  { '<leader>vp', 'btm',     'Process Monitor' },
-  { '<leader>vs', 'spotify_player', 'Spotify' },
-  { '<leader>vi', 'podman-tui', 'Container Infrastructure' },
+  { '<leader>tp', 'btm',     'Process Monitor' },
+  { '<leader>ts', 'spotify_player', 'Spotify' },
+  { '<leader>ti', 'podman-tui', 'Container Infrastructure' },
 }
 
 for _, map in ipairs(tui_maps) do
@@ -99,7 +99,7 @@ for _, map in ipairs(tui_maps) do
 end
 
 -- 3. Dynamic Context Mappings (Aider & Glow)
-vim.keymap.set('n', '<leader>va', function()
+vim.keymap.set('n', '<leader>ta', function()
   proxy_exec(function()
     local file = vim.fn.expand('%:p')
     local cmd = 'aider ' .. (file ~= '' and vim.fn.shellescape(file) or '')
@@ -116,11 +116,15 @@ vim.keymap.set('n', '<leader>vg', function()
   end)
 end, { desc = 'TUI: Markdown Preview' })
 
+-- Create a convenience alias for the Glow preview
+vim.keymap.set('n', '<leader>tm', '<leader>vg', { remap = true, noremap = true, silent = true })
+
 -- 4. Hardware/PlatformIO Domain
 local pio_tasks = {
   { '<leader>pb', 'pio run',              'Build Project' },
   { '<leader>pu', 'pio run -t upload',    'Upload Firmware' },
   { '<leader>pm', 'pio device monitor',   'Serial Monitor' },
+  { '<leader>pc', 'pio project init --ide=vscode', 'Update [C]ompilation Database' },
 }
 
 for _, task in ipairs(pio_tasks) do

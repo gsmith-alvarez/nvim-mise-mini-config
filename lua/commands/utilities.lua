@@ -7,7 +7,7 @@ local M = {}
 -- [[ View & External Tool Keymaps ]]
 -- High-level entry points for the commands defined below.
 vim.keymap.set('n', '<leader>vq', '<cmd>Jq<CR>', { desc = '[J]q Live Scratchpad' })
-vim.keymap.set('n', '<leader>sr', '<cmd>Sd<CR>', { desc = '[S]earch & [R]eplace (Sd)' })
+vim.keymap.set('n', '<leader>sR', '<cmd>Sd<CR>', { desc = '[S]earch & [R]eplace (Sd)' })
 vim.keymap.set('n', '<leader>vx', '<cmd>Xh<CR>', { desc = '[X]h HTTP Client' })
 vim.keymap.set('n', '<leader>vj', '<cmd>Jless<CR>', { desc = '[J]less JSON Viewer' })
 
@@ -138,8 +138,6 @@ end, { nargs = '*', desc = 'Execute HTTP request via xh' })
 -- Designed for "Zellij-style" navigation. 'H' and 'L' cycle through buffers
 -- just like tab switching in a browser.
 
-vim.keymap.set('n', 'H', '<cmd>bprevious<CR>', { desc = 'Go to Previous Buffer' })
-vim.keymap.set('n', 'L', '<cmd>bnext<CR>', { desc = 'Go to Next Buffer' })
 
 vim.keymap.set('n', '<leader>bd', function()
   local current = vim.api.nvim_get_current_buf()

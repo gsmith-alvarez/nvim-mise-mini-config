@@ -102,13 +102,14 @@ local search_keys = {
   { '<leader>cd', function() require('telescope').extensions.zoxide.list() end, 'Zoxide Directory' },
   { '<leader>ff', function() require('telescope.builtin').find_files() end,     'Find Files' },
   { '<leader>fr', function() require('telescope.builtin').oldfiles() end,       'Recent Files' },
-  { '<leader>fb', function() require('telescope.builtin').buffers() end,         'Active Buffers' },
+  { '<leader><leader>', function() require('telescope.builtin').buffers() end,         'Find existing buffers' },
   { '<leader>sg', function() require('telescope.builtin').live_grep() end,       'Grep Project' },
   { '<leader>sw', function() require('telescope.builtin').grep_string() end,     'Grep Word Under Cursor' },
   { '<leader>sd', function() require('telescope.builtin').diagnostics() end,    'Search Diagnostics' },
   { '<leader>sr', function() require('telescope.builtin').resume() end,         'Resume Last Search' },
   { '<leader>sh', function() require('telescope.builtin').help_tags() end,      'Search Help' },
   { '<leader>sk', function() require('telescope.builtin').keymaps() end,        'Search Keymaps' },
+  { '<leader>sn', function() require('telescope.builtin').find_files({ cwd = vim.fn.stdpath('config') }) end, 'Search Neovim files' },
 }
 
 for _, k in ipairs(search_keys) do

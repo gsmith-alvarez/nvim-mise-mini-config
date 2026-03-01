@@ -43,29 +43,53 @@ vim.api.nvim_create_autocmd('VimEnter', {
           -- Core Tool Groups
           { '<leader>c', group = '💻 Code' },
           { '<leader>d', group = '🐞 Debug' },
+          { '<leader>D', group = '🔍 Diagnostics' },
           { '<leader>g', group = '📦 Git' },
           { '<leader>h', group = '⚓ Git Hunks', mode = { 'n', 'v' } },
           { '<leader>o', group = '📝 Notes' },
+          { '<leader>O', group = '🏃 Overseer' },
           { '<leader>p', group = '🚀 PlatformIO' },
+          { '<leader>q', group = '💾 Session' },
           { '<leader>r', group = '🛠️ Refactor' },
           { '<leader>s', group = '🔍 Search' },
           { '<leader>t', group = '⚙️ Toggles' },
           { '<leader>u', group = '🎨 UI Utils' },
           { '<leader>v', group = '👁️ View' },
+          { '<leader>w', group = '🪟 Window' },
           { '<leader>z', group = '🧱 Zellij' },
           { '<leader>b', group = '󰓩 Buffers' },
           
-          -- We leave the standalone mappings (like <leader>y or <leader>tm) 
-          -- intact here for legacy compatibility, but encourage migrating their 
-          -- descriptions directly to their respective vim.keymap.set definitions.
+          -- Diagnostics (under <leader>D)
+          { '<leader>dL', desc = 'Toggle Virtual [L]ines' },
+          { '<leader>dU', desc = 'Toggle [U]nderlines' },
+          { '<leader>Dq', desc = '🗒️ [q]uickfix List' },
+
+          -- Search (under <leader>s)
+          { '<leader>sR', desc = 'Search & [R]eplace (SD)' },
+          { '<leader>sr', desc = '[S]earch [R]esume' },
+
+          -- Zellij (under <leader>z)
+          { '<leader>zv', desc = 'Vertical Split' },
+          { '<leader>zs', desc = 'Horizontal Split' },
+          { '<leader>zf', desc = 'Floating Pane' },
+          { '<leader>zq', desc = 'Close Pane' },
+
+          -- View (under <leader>v)
+          { '<leader>vq', desc = 'JQ: Live Scratchpad' },
+          { '<leader>vx', desc = 'XH: HTTP Client' },
+          { '<leader>vj', desc = 'JLess: JSON Viewer' },
+          { '<leader>vw', desc = '[W]atchexec (Manual)' },
+
+          -- Refactor (under <leader>r)
+          { '<leader>rr', desc = 'Refactor: Select (UI)' }, -- Corrected from "Ring"
+
+          -- Other standalone mappings (descriptions from vim.keymap.set are preferred)
           { '<leader>tm', desc = '📝 Markdown Preview' },
           { '<leader>ts', desc = '🎧 Spotify Player' },
           { '<leader>tp', desc = '📊 Process Monitor' },
           { '<leader>ta', desc = '🤖 Aider AI Chat' },
           { '<leader>ti', desc = '📦 Infrastructure (Podman)' },
           { '<leader>th', desc = '💡 LSP: Inlay Hints' },
-          { '<leader>f',  desc = '✨ [F]ormat buffer' },
-          { '<leader>q',  desc = '🗒️ Open diagnostic [Q]uickfix list' },
           { '<leader>du', desc = 'Toggle DAP UI' },
           { '<leader>dr', desc = 'Toggle DAP REPL' },
           { '<leader>pb', desc = '[B]uild Project' },
@@ -76,7 +100,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
           { '<leader>rf', desc = 'Extract [F]unction to File' },
           { '<leader>rv', desc = 'Extract [V]ariable' },
           { '<leader>ri', desc = '[I]nline Variable' },
-          { '<leader>rr', desc = '[R]ing (Telescope)' },
           { '<leader>ff', desc = '[F]ind [F]iles' },
           { '<leader>sh', desc = '[S]earch [H]elp' },
           { '<leader>sk', desc = '[S]earch [K]eymaps' },
@@ -84,8 +107,6 @@ vim.api.nvim_create_autocmd('VimEnter', {
           { '<leader>sw', desc = '[S]earch current [W]ord' },
           { '<leader>sg', desc = '[S]earch by [G]rep' },
           { '<leader>sd', desc = '[S]earch [D]iagnostics' },
-          { '<leader>sr', desc = '[S]earch [R]esume' },
-          { '<leader>s.', desc = '[S]earch Recent Files' },
           { '<leader>sn', desc = '[S]earch [N]eovim files' },
           { '<leader><leader>', desc = '[ ] Find existing buffers' },
           { '<leader>cd', desc = '[C]hange [D]irectory (Zoxide)' },
@@ -93,6 +114,8 @@ vim.api.nvim_create_autocmd('VimEnter', {
           { '<leader>cr', desc = '󰑮 [C]ode [R]un (Interactive)' },
           { '<leader>cf', desc = '✨ [C]ode [F]ormat Buffer' },
           { '<leader>y',  desc = '🖼️ Yazi File Manager' },
+          { '<leader>ut', desc = 'Tools: Check Toolchain (Mise)' },
+          { '<leader>xt', desc = 'Audit: Run Project [T]ypos' },
         },
       })
     end)

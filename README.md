@@ -321,57 +321,16 @@ Motion training engine that exists as a "Ghost Command" until used.
 | n       | `j`               | Move visually (word wrap)           |
 | n       | `<leader>rn`      | [R]e[n]ame Symbol (JIT)             |
 | n       | `<leader>?`       | Show Workflow Cheatsheet            |
-| n, v    | `<leader>cf`      | [F]ormat buffer                     |
-| n       | `<leader>oq`      | Obsidian: Quick Switch (JIT)        |
-| n       | `<leader>os`      | Obsidian: Search (JIT)              |
-| n       | `<leader>on`      | Obsidian: New Note (JIT)            |
-| n       | `<leader>ut`      | [T]ool [C]heck (Mise)               |
-| n       | `<leader>xt`      | Run Project [T]ypos                 |
-| n       | `<leader>cx`      | Code Execute (Continuous Watch)     |
-| n       | `<leader>cr`      | Code Run (Single Interactive)       |
+| n, v    | `<leader>cf`      | ✨ [C]ode [F]ormat buffer           |
+| n       | `<leader>oq`      | Obsidian: [Q]uick Switch (JIT)      |
+| n       | `<leader>os`      | Obsidian: [S]earch Notes (JIT)      |
+| n       | `<leader>on`      | Obsidian: [N]ew Note (JIT)          |
+| n       | `<leader>ut`      | Tools: Check Toolchain (Mise)       |
+| n       | `<leader>xt`      | Audit: Run Project [T]ypos          |
+| n       | `<leader>cx`      | 󱓞 [C]ode [X]ecute (Continuous Watch)      |
+| n       | `<leader>cr`      | 󰑮 [C]ode [R]un (Interactive)        |
 | n       | `<leader>vw`      | View: [W]atchexec (Manual)          |
-| n       | `<leader>dL`      | [T]oggle [V]irtual Text             |
-| n       | `<leader>dU`      | [T]oggle [U]nderlines               |
-| n       | `<leader>q`       | Open diagnostic Quickfix            |
-| n       | `<leader>zv`      | Zellij: Vertical Split              |
-| n       | `<leader>zs`      | Zellij: Horizontal Split            |
-| n       | `<leader>zf`      | Zellij: Floating Pane               |
-| n       | `<leader>zq`      | Zellij: Close Pane                  |
-| n       | `<leader>vq`      | JQ: Live Scratchpad                 |
-| n       | `<leader>sr`      | Search & Replace (SD)               |
-| n       | `<leader>vx`      | XH: HTTP Client                     |
-| n       | `<leader>vj`      | JLess: JSON Viewer                  |
-| n       | `<Esc>`           | Clear search highlights             |
-| n       | `<leader>yp`      | Yank Absolute Path                  |
-| n       | `<leader>yr`      | Yank Relative Path                  |
-| n       | `<leader>ur`      | Restart LSP                         |
-| n       | `H`               | Previous Buffer                     |
-| n       | `L`               | Next Buffer                         |
-| n       | `<leader>bd`      | [B]uffer [D]elete                   |
-| n, x    | `<leader>rr`      | Refactor: Select (UI)               |
-| x       | `<leader>re`      | Refactor: Extract Variable          |
-| x       | `<leader>rf`      | Refactor: Extract Function          |
-| n, x    | `<leader>ri`      | Refactor: Inline Variable           |
-| v, V    | `<M-h/j/k/l>`     | Move highlighted block              |
-| n       | `gz[a/d/r/f/F/h/n]`| Surround manipulation              |
-| n       | `<leader>va`      | Toggle Aerial Structure             |
-| n       | `<leader>ff`      | Search: Find Files                  |
-| n       | `<leader>sg`      | Search: Live Grep                   |
-| n       | `]c` / `[c`       | Next/Prev Git Change                |
-| n       | `<leader>gg`      | Lazygit TUI                         |
-| n       | `<leader>db`      | Toggle Persistent Breakpoint        |
-| n       | `<leader>dc`      | Start/Continue Debugging            |
-| i       | `<C-j/k/l/h>`     | Completion navigation               |
-| n       | `<M-a>` / `<M-e>`  | Harpoon: Mark / UI                 |
-| n       | `<leader>so`      | OmniSearch (Ripgrep)                |
-| n, t    | `<C-h/j/k/l>`     | Smart Pane Move                     |
-| n, t    | `<M-h/j/k/l>`     | Smart Pane Resize                   |
-| n       | `<leader>y`       | Yazi Explorer                       |
-| i, s    | `<C-j/k>`         | Snippet Expand/Jump                 |
-| n       | `<leader>ot/or/oi`| Overseer: Toggle/Run/Info           |
-| n       | `<leader>qs/ql`   | Session: Restore Current/Last       |
-| n, t    | `<C-\>`           | Toggle Terminal                     |
-| n       | `<leader>pb/pu/pm`| PIO: Build/Upload/Monitor           |
+| n       | `<leader>dL`      | Diagnostics: Toggle Virtual [L]ines |\n| n       | `<leader>dU`      | Diagnostics: Toggle [U]nderlines    |\n| n       | `<leader>Dq`      | Diagnostics: Open [q]uickfix        |\n| n       | `<leader>zv`      | Zellij: Vertical Split              |\n| n       | `<leader>zs`      | Zellij: Horizontal Split            |\n| n       | `<leader>zf`      | Zellij: Floating Pane               |\n| n       | `<leader>zq`      | Zellij: Close Pane                  |\n| n       | `<leader>vq`      | JQ: Live Scratchpad                 |\n| n       | `<leader>sR`      | Search & [R]eplace (SD)             |\n| n       | `<leader>vx`      | XH: HTTP Client                     |\n| n       | `<leader>vj`      | JLess: JSON Viewer                  |\n| n       | `<leader>yp`      | [Y]ank Absolute [P]ath            |\n| n       | `<leader>yr`      | [Y]ank [R]elative Path            |\n| n       | `<leader>ur`      | Restart LSP                         |\n| n       | `H`               | Go to Previous Buffer               |\n| n       | `L`               | Go to Next Buffer                   |\n| n       | `<leader>bd`      | [B]uffer [D]elete                   |\n| n, x    | `<leader>rr`      | Refactor: Select (UI)               |\n| x       | `<leader>re`      | Refactor: Extract Variable          |\n| x       | `<leader>rf`      | Refactor: Extract Function          |\n| n, x    | `<leader>ri`      | Refactor: Inline Variable           |\n| v, V    | `<M-h/j/k/l>`     | Move highlighted block              |\n| n       | `gz[a/d/r/f/F/h/n]`| Surround manipulation              |\n| n       | `<leader>va`      | Toggle Aerial Structure             |\n| n       | `<leader>ff`      | Search: Find Files                  |\n| n       | `<leader>sg`      | Search: Live Grep                   |\n| n       | `]c` / `[c`       | Next/Prev Git Change                |\n| n       | `<leader>gg`      | Lazygit TUI                         |\n| n       | `<leader>db`      | Toggle Persistent Breakpoint        |\n| n       | `<leader>dc`      | Start/Continue Debugging            |\n| i       | `<C-j/k/l/h>`     | Completion navigation               |\n| n       | `<M-a>` / `<M-e>` | Harpoon: Mark / UI                  |\n| n       | `<leader>so`      | OmniSearch (Ripgrep)                |\n| n, t    | `<C-h/j/k/l>`     | Smart Pane Move                     |\n| n, t    | `<M-h/j/k/l>`     | Smart Pane Resize                   |\n| n       | `<leader>y`       | Yazi Explorer                       |\n| i, s    | `<C-j/k>`         | Snippet Expand/Jump                 |\n| n       | `<leader>Ot`      | Overseer: [T]oggle [O]verseer       |\n| n       | `<leader>Or`      | Overseer: Template [R]un            |\n| n       | `<leader>Oi`      | Overseer: Task Config [I]nfo        |\n| n       | `<leader>Oa`      | Overseer: Task [A]ction Menu        |\n| n       | `<leader>qs`      | Session: Restore Current            |\n| n       | `<leader>ql`      | Session: Restore Last               |\n| n, t    | `<C-\>`           | Toggle Terminal                     |\n| n       | `<leader>pb`      | PIO: Build Project                  |\n| n       | `<leader>pu`      | PIO: Upload Firmware                |\n| n       | `<leader>pm`      | PIO: Serial Monitor                 |\n| n       | `<leader>pc`      | PIO: Update [C]ompilation Database  |\n| n       | `<leader>tm`      | 📝 Markdown Preview                 |\n| n       | `<leader>ts`      | 🎧 Spotify Player                   |\n| n       | `<leader>tp`      | 📊 Process Monitor                  |\n| n       | `<leader>ta`      | 🤖 Aider AI Chat                    |\n| n       | `<leader>ti`      | 📦 Infrastructure (Podman)          |\n| n       | `<leader>th`      | 💡 LSP: Inlay Hints                 |\n| n       | `<leader>sd`      | Search: [D]iagnostics               |\n| n       | `<leader>sn`      | Search: [N]eovim files              |\n| n       | `<leader>sr`      | Search: [R]esume Last Search        |\n| n       | `<leader>ss`      | Search: [S]elect Telescope          |\n| n       | `<leader>sw`      | Search: [W]ord Under Cursor         |\n| n       | `<leader>sk`      | Search: [K]eymaps                   |\n| n       | `<leader>sh`      | Search: [H]elp Tags                 |\n| n       | `<leader>cd`      | [C]hange [D]irectory (Zoxide)     |\n| n       | `<leader>du`      | Toggle DAP UI                       |\n| n       | `<leader>dr`      | Toggle DAP REPL                     |\n| n       | `<leader><leader>` | [ ] Find existing buffers           |
 
 ## The Dependency Graph
 

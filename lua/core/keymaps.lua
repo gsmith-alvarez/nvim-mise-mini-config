@@ -51,52 +51,55 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 
 -- [[ 6. SYMBOL REFACTORING ]]
 -- Leverages IncRename (if installed) for real-time symbol renaming.
-vim.keymap.set('n', '<leader>rn', ':IncRename ', { desc = '[R]e[n]ame Symbol' })
 
--- [[ 7. WORKFLOW: Floating Cheatsheet ]]
--- Renders a local markdown file in a floating window for quick reference.
--- STRATEGY: Defensive Floating UI
+-- [[ 7. WORKFLOW: Keymap Cheatsheet ]]
+-- Displays available keybindings using which-key.nvim.
 vim.keymap.set('n', '<leader>?', function()
-  local path = vim.fn.stdpath('config') .. '/nvim_cheatsheet.md'
-  if vim.fn.filereadable(path) == 0 then
-    vim.notify('Cheatsheet missing at: ' .. path, vim.log.levels.ERROR)
-    return
-  end
-
-  local buf = vim.api.nvim_create_buf(false, true) -- Scratch buffer
-  local width = math.floor(vim.o.columns * 0.8)
-  local height = math.floor(vim.o.lines * 0.8)
-
-  -- Prevent window from being too small on narrow terminals
-  if width < 20 or height < 5 then return end
-
-  vim.api.nvim_open_win(buf, true, {
-    relative = 'editor',
-    width = width,
-    height = height,
-    row = math.floor((vim.o.lines - height) / 2),
-    col = math.floor((vim.o.columns - width) / 2),
-    style = 'minimal',
-    border = 'rounded'
-  })
-
-  -- Inject content and set buffer-local behavior
-  vim.fn.setline(1, vim.fn.readfile(path))
-  vim.bo[buf].filetype = 'markdown'
-  vim.bo[buf].modifiable = false
-
-  -- Local exit maps for the float
-  local opts = { buffer = buf, silent = true, nowait = true }
-  vim.keymap.set('n', 'q', '<cmd>close<CR>', opts)
-  vim.keymap.set('n', '<Esc>', '<cmd>close<CR>', opts)
+  require('which-key').show({ mode = 'n', prefix = '<leader>' })
 end, { desc = 'Show Workflow Cheatsheet' })
 
--- [[ 8. PAIN-DRIVEN LEARNING (Disabled by Default) ]]
--- Uncomment to force home-row discipline.
-local arrow_warning = function()
-  vim.notify("DISCIPLINE: Use h, j, k, l. Arrows are for the weak.", vim.log.levels.WARN)
-end
--- vim.keymap.set({'n', 'v'}, '<Up>', arrow_warning)
--- vim.keymap.set({'n', 'v'}, '<Down>', arrow_warning)
+-- [[ 8. OBSIDIAN NOTES (JIT) ]]
+-- Proxies for Obsidian.nvim commands, leveraging JIT loading.
+local utils = require('core.utils') -- Ensure utils is available
 
-return M
+vim.keymap.set('n', '<leader>oq', function()
+  local success, _ = pcall(vim.cmd, 'ObsidianQuickSwitch')
+  if not success then
+    utils.soft_notify('Not in an Obsidian workspace or plugin not loaded.', vim.log.levels.WARN)
+  end
+end, { desc = 'Obsidian: [Q]uick Switch (JIT)' })
+
+vim.keymap.set('n', '<leader>os', function()
+  local success, _ = pcall(vim.cmd, 'ObsidianSearch')
+  if not success then
+    utils.soft_notify('Not in an Obsidian workspace or plugin not loaded.', vim.log.levels.WARN)
+  end
+end, { desc = 'Obsidian: [S]earch Notes (JIT)' })
+
+vim.keymap.set('n', '<leader>on', function()
+  local success, _ = pcall(vim.cmd, 'ObsidianNew')
+  if not success then
+    utils.soft_notify('Not in an Obsidian workspace or plugin not loaded.', vim.log.levels.WARN)
+  end
+end, { desc = 'Obsidian: [N]ew Note (JIT)' })
+
+-- [[ 9. AUDITING & BUILDING ]]
+vim.keymap.set('n', '<leader>ut', '<cmd>ToolCheck<CR>', { desc = 'Tools: Check Toolchain (Mise)' })
+vim.keymap.set('n', '<leader>xt', '<cmd>TyposCheck<CR>', { desc = 'Audit: Run Project [T]ypos' })
+vim.keymap.set('n', '<leader>vw', '<cmd>Watchexec<CR>', { desc = 'View: [W]atchexec (Manual)' })
+
+-- [[ 10. DIAGNOSTICS & LSP ]]
+vim.keymap.set('n', '<leader>dL', '<cmd>ToggleVirtualText<CR>', { desc = 'Diagnostics: Toggle Virtual [L]ines' })
+vim.keymap.set('n', '<leader>dU', '<cmd>ToggleUnderlines<CR>', { desc = 'Diagnostics: Toggle [U]nderlines' })
+vim.keymap.set('n', '<leader>Dq', '<cmd>lua vim.diagnostic.setqflist()<CR>', { desc = 'Diagnostics: Open [q]uickfix' })
+vim.keymap.set('n', '<leader>th', function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
+end, { desc = 'LSP: Toggle Inlay [H]ints' })
+
+
+-- [[ 11. BUFFER NAVIGATION ]]
+vim.keymap.set('n', 'H', '<cmd>bprevious<CR>', { desc = 'Go to Previous Buffer' })
+vim.keymap.set('n', 'L', '<cmd>bnext<CR>', { desc = 'Go to Next Buffer' })
+
+-- [[ 12. PAIN-DRIVEN LEARNING (Disabled by Default) ]]

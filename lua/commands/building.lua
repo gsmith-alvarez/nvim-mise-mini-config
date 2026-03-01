@@ -119,4 +119,17 @@ vim.keymap.set('n', '<leader>cr', function() execute_smart_build(false) end,
 -- Manual Watch trigger
 vim.keymap.set('n', '<leader>vw', '<cmd>Watch ', { desc = '[V]iew [W]atchexec (Manual)' })
 
+vim.api.nvim_create_user_command('Watchexec', function(opts)
+  local utils = require('core.utils')
+  local we_bin = utils.mise_shim('watchexec')
+  if not we_bin then
+    utils.soft_notify('watchexec binary not found.', vim.log.levels.WARN)
+    return
+  end
+  local cmd_to_run = vim.fn.input('Run with watchexec: ')
+  if cmd_to_run ~= '' then
+    require('commands.mux').zellij_run(we_bin .. ' -- ' .. cmd_to_run)
+  end
+end, { nargs = '?', complete = 'shellcmd' })
+
 return M

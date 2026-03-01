@@ -165,4 +165,17 @@ end, { desc = 'Populate Quickfix with project typos' })
 
 vim.keymap.set('n', '<leader>xt', '<cmd>Typos<CR>', { desc = 'Run Project [T]ypos' })
 
+local utils = require('core.utils')
+vim.api.nvim_create_user_command('TyposCheck', function()
+  local typos_bin = utils.mise_shim('typos')
+  if not typos_bin then
+    utils.soft_notify('Typos binary not found. Please run: mise install typos', vim.log.levels.WARN)
+    return
+  end
+  local term = require('toggleterm.terminal').Terminal:new({ cmd = typos_bin,
+    close_on_exit = false,
+    display_name = "Typos" })
+  term:toggle()
+end, { desc = "Run typos-cli on the current project" })
+
 return M

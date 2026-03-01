@@ -12,45 +12,55 @@ local utils = require('core.utils')
 
 -- [[ THE RENDERING PIPELINE ]]
 -- Order is absolute. Do not alphabetize this list.
-local modules = {
-  -- 1. THE FOUNDATION (Synchronous Blocking)
-  -- Must load first to prevent the "Flash of Unstyled Content" (FOUC).
+
+-- 1. THE FOUNDATION (Synchronous Blocking)
+-- Must load first to prevent the "Flash of Unstyled Content" (FOUC)
+-- and to polyfill icons for other plugins.
+local sync_modules = {
   'ui.mini-colors',
-
-  -- 2. THE GLYPH ENGINE (Synchronous Polyfill)
-  -- Must load immediately after colors to polyfill 'nvim-web-devicons'
-  -- before any other plugin asks for it.
   'ui.mini-icons',
+}
+for _, mod in ipairs(sync_modules) do
+  local ok, err = pcall(require, 'plugins.' .. mod)
+  if not ok then
+    utils.soft_notify(string.format("UI-SYNC DOMAIN FAILURE: [%s]\n%s", mod, err), vim.log.levels.ERROR)
+  end
+end
 
-  -- 3. THE INTERCEPTION LAYER (Synchronous Overlay)
-  -- Hijacks the native vim.notify and cmdline engines before Neovim
-  -- has a chance to render the default UI.
-  'ui.noice',
+-- 2. DEFERRED UI (Scheduled for Next Tick)
+-- These are heavy UI components that can be initialized *after* startup.
+vim.schedule(function()
+  local deferred_modules = {
+    'ui.noice',           -- Interception Layer (heavy)
+    'ui.mini-statusline', -- Telemetry
+    'ui.mini-tabline',    -- Telemetry
+  }
+  for _, mod in ipairs(deferred_modules) do
+    local ok, err = pcall(require, 'plugins.' .. mod)
+    if not ok then
+      utils.soft_notify(string.format("UI-DEFERRED DOMAIN FAILURE: [%s]\n%s", mod, err), vim.log.levels.ERROR)
+    end
+  end
+end)
 
-  -- 4. TELEMETRY (Passive Redraws)
-  -- Safe to load now that colors and icons are fully active in memory.
-  'ui.mini-statusline',
-  'ui.mini-tabline',
-
-  -- 5. DEFERRED ENGINES & DASHBOARDS (JIT / Autocmds)
-  -- These plugins manage their own lazy-loading via events (BufReadPre, VimEnter)
-  -- or JIT proxies. Their load order here only registers their triggers;
-  -- it does not block the main thread.
+-- 3. EVENT-BASED PLUGINS (JIT / Autocmd Triggers)
+-- Requiring these is cheap; it only sets up the trigger (e.g., VimEnter, FileType)
+-- that will perform the heavy lifting later.
+local event_modules = {
   'ui.treesitter',
   'ui.mini-starter',
   'ui.which-key',
   'ui.trouble',
   'ui.render-markdown',
 }
-
-for _, mod in ipairs(modules) do
+for _, mod in ipairs(event_modules) do
   -- Resolve the full Lua namespace path relative to 'lua/' folder
   local module_path = 'plugins.' .. mod
   local ok, err = pcall(require, module_path)
 
   if not ok then
     -- Route fatal rendering failures to the diagnostic audit trail
-    utils.soft_notify(string.format("UI DOMAIN FAILURE: [%s]\n%s", module_path, err), vim.log.levels.ERROR)
+    utils.soft_notify(string.format("UI-EVENT DOMAIN FAILURE: [%s]\n%s", module_path, err), vim.log.levels.ERROR)
   end
 end
 
