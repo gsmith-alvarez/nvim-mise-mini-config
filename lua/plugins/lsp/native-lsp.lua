@@ -2,8 +2,8 @@
 -- Domain: LSP & Intelligence
 --
 -- PHILOSOPHY: Native Capability Injection
--- We bypass the 'lspconfig' abstraction layer in favor of Neovim 0.10's 
--- native 'vim.lsp.config' registry. This ensures the lightest possible 
+-- We bypass the 'lspconfig' abstraction layer in favor of Neovim 0.10's
+-- native 'vim.lsp.config' registry. This ensures the lightest possible
 -- memory footprint and direct interaction with the C-core LSP client.
 
 local M = {}
@@ -12,10 +12,10 @@ local utils = require('core.utils')
 -- [[ THE BOOTSTRAPPER ]]
 local ok, err = pcall(function()
   local MiniDeps = require('mini.deps')
-  
+
   -- 1. Infrastructure Registration
   MiniDeps.add('neovim/nvim-lspconfig') -- Required for server-specific logic stubs
-  MiniDeps.add('j-hui/fidget.nvim')    -- Visual LSP progress notifications
+  MiniDeps.add('j-hui/fidget.nvim')     -- Visual LSP progress notifications
 
   require('fidget').setup({})
 
@@ -36,11 +36,25 @@ local ok, err = pcall(function()
     pyright  = { bin = 'pyright-langserver', args = { '--stdio' }, ft = { 'python' }, root = { 'pyproject.toml', '.git' } },
     ruff     = { bin = 'ruff', args = { 'server' }, ft = { 'python' }, root = { 'pyproject.toml', '.git' } },
     ts_ls    = { bin = 'typescript-language-server', args = { '--stdio' }, ft = { 'typescript', 'javascript' }, root = { 'package.json', '.git' } },
-    lua_ls   = { 
-      bin = 'lua-language-server', 
-      ft = { 'lua' }, 
+    lua_ls   = {
+      bin = 'lua-language-server',
+      ft = { 'lua' },
       root = { '.luarc.json', '.git' },
       settings = { Lua = { diagnostics = { globals = { 'vim' } }, workspace = { checkThirdParty = false } } }
+    },
+    tinymist = {
+      bin = 'tinymist',
+      ft = { 'typst' },
+      root = { 'main.typ', 'typst.toml', '.git' },
+      settings = {
+        exportPdf = "onSave", -- or "onType" for real-time PDF generation
+        formatterMode = "typstyle",
+        semantic_tokens = "enable",
+      },
+      -- Critical for encoding compatibility between Rust (UTF-8) and Neovim
+    capabilities = {
+      offsetEncoding = { "utf-8", "utf-16" },
+      }
     },
     -- Formats/Config
     jsonls   = { bin = 'vscode-json-languageserver', args = { '--stdio' }, ft = { 'json' }, root = { '.git' } },
@@ -56,10 +70,13 @@ local ok, err = pcall(function()
     local bin_path = utils.mise_shim(cfg.bin)
 
     if bin_path then
+      -- Merge server-specific capabilities if they exist
+      local server_capabilities = vim.tbl_deep_extend('force', {}, capabilities, cfg.capabilities or {})
+
       -- Construct native Neovim LSP configuration payload
       vim.lsp.config[name] = {
         cmd = { bin_path, unpack(cfg.args or {}) },
-        capabilities = capabilities,
+        capabilities = server_capabilities,
         filetypes = cfg.ft,
         root_markers = cfg.root,
         settings = cfg.settings,
@@ -84,7 +101,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('LSP_Attach_Common', { clear = true }),
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
-    
+
     local map = function(keys, func, desc, mode)
       vim.keymap.set(mode or 'n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
     end
@@ -114,10 +131,19 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     -- Inlay Hints
     if client and client.server_capabilities.inlayHintProvider then
-      map('<leader>ch', function() 
-        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf })) 
+      map('<leader>ch', function()
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = event.buf }))
       end, 'Toggle Inlay [H]ints')
     end
+
+
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "typst",
+      callback = function()
+        vim.keymap.set("n", "<leader>pv", "<cmd>TermExec cmd='typst watch %'<CR>",
+          { buffer = true, desc = "Typst Watch" })
+      end,
+    })
   end,
 })
 

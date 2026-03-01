@@ -3,7 +3,7 @@
 --
 -- PHILOSOPHY: Pre-Emptive Capability Injection
 -- Autocompletion is not a standalone UI; it is an integrated client of the LSP.
--- It must load exactly when a file is read so its capabilities can be broadcast 
+-- It must load exactly when a file is read so its capabilities can be broadcast
 -- to the Language Servers the millisecond they attach.
 
 local M = {}
@@ -39,48 +39,48 @@ local ok, err = pcall(function()
   require('blink.cmp').setup({
     keymap = {
       -- Zero interference with native Neovim keys
-      preset = 'none',
-      
+      preset        = 'none',
+
       ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
       ['<C-e>']     = { 'hide' },
 
       -- The Home-Row Navigation Protocol
-      ['<C-j>'] = { 'select_next', 'fallback' },
-      ['<C-k>'] = { 'select_prev', 'fallback' },
-      ['<C-l>'] = { 'accept', 'fallback' },
-      ['<C-h>'] = { 'hide', 'fallback' },
+      ['<C-j>']     = { 'select_next', 'fallback' },
+      ['<C-k>']     = { 'select_prev', 'fallback' },
+      ['<C-l>']     = { 'accept', 'fallback' },
+      ['<C-h>']     = { 'hide', 'fallback' },
 
-      ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
-      ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
+      ['<C-b>']     = { 'scroll_documentation_up', 'fallback' },
+      ['<C-f>']     = { 'scroll_documentation_down', 'fallback' },
     },
-    appearance = { 
-      nerd_font_variant = 'mono' 
+    appearance = {
+      nerd_font_variant = 'mono'
     },
     completion = {
-      list = { 
-        selection = { 
+      list = {
+        selection = {
           preselect = true,   -- Auto-targets the first item for instant <C-l> acceptance
           auto_insert = false -- Prevents ghost text from mutating your buffer while scrolling
-        } 
+        }
       },
-      documentation = { 
-        auto_show = false, 
-        auto_show_delay_ms = 500 
+      documentation = {
+        auto_show = false,
+        auto_show_delay_ms = 500
       },
-      menu = { 
-        draw = { 
-          columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind' } } 
-        } 
+      menu = {
+        draw = {
+          columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind' } }
+        }
       },
     },
     sources = {
       default = { 'lsp', 'path', 'snippets', 'lazydev' },
-      providers = { 
-        lazydev = { 
-          name = 'LazyDev', 
-          module = 'lazydev.integrations.blink', 
-          score_offset = 100 
-        } 
+      providers = {
+        lazydev = {
+          name = 'LazyDev',
+          module = 'lazydev.integrations.blink',
+          score_offset = 100
+        }
       },
     },
     signature = { enabled = true },

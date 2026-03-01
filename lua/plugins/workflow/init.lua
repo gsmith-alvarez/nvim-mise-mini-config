@@ -9,11 +9,12 @@ local M = {}
 local utils = require 'core.utils'
 
 local modules = {
-  'workflow.toggleterm', -- Terminal Command Center
-  'workflow.vim-be-good', -- Motion training (Practice mode)
-  'workflow.persistence', -- Automatic Session Management
-  'workflow.overseer', -- Task Runner & Background Jobs
-  'workflow.snacks', --benchmarking
+  'workflow.toggleterm',   -- Terminal Command Center
+  'workflow.vim-be-good',  -- Motion training (Practice mode)
+  'workflow.persistence',  -- Automatic Session Management
+  'workflow.overseer',     -- Task Runner & Background Jobs
+  'workflow.snacks',       --benchmarking
+  'workflow.typst-preview' -- What it sounds like
 }
 
 for _, mod in ipairs(modules) do

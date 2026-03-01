@@ -2,9 +2,9 @@
 -- Domain: UI & Core Mechanics
 --
 -- PHILOSOPHY: Self-Healing Background Boot
--- We use 'later' to defer loading. Crucially, we account for the 
--- async nature of package managers: if the plugin is currently 
--- downloading on a fresh install, we fail gracefully and silently 
+-- We use 'later' to defer loading. Crucially, we account for the
+-- async nature of package managers: if the plugin is currently
+-- downloading on a fresh install, we fail gracefully and silently
 -- rather than throwing a red stack trace.
 
 local M = {}
@@ -14,7 +14,6 @@ local ok, err = pcall(function()
   local MiniDeps = require('mini.deps')
 
   MiniDeps.later(function()
-    
     -- 1. Trigger the add/download
     MiniDeps.add({
       source = 'nvim-treesitter/nvim-treesitter',
@@ -31,12 +30,12 @@ local ok, err = pcall(function()
     })
 
     -- [[ THE ARCHITECT'S MULTIPLIER: GRACEFUL DEGRADATION ]]
-    -- We attempt to load the configs. If it fails, it means mini.deps 
+    -- We attempt to load the configs. If it fails, it means mini.deps
     -- is still downloading it in the background. We simply exit the function.
     local status_ok, ts_configs = pcall(require, 'nvim-treesitter.configs')
     if not status_ok then
       -- Do not throw an error here. Just wait for the next Neovim launch.
-      return 
+      return
     end
 
     -- 3. Initialize the Configuration (Only runs if downloaded)
@@ -45,22 +44,22 @@ local ok, err = pcall(function()
         'bash', 'json', 'toml', 'yaml',
         'c', 'cpp', 'go', 'lua', 'python', 'rust', 'zig',
         'html', 'javascript', 'typescript', 'markdown', 'markdown_inline',
-        'query', 'regex', 'vim', 'vimdoc',
+        'query', 'regex', 'vim', 'vimdoc', 'typst',
       },
-      
+
       auto_install = true,
-      
-      highlight = { 
+
+      highlight = {
         enable = true,
         additional_vim_regex_highlighting = false,
       },
-      
+
       indent = { enable = true },
-      
+
       textobjects = {
         select = {
           enable = true,
-          lookahead = true, 
+          lookahead = true,
           keymaps = {
             ['aa'] = '@parameter.outer',
             ['ia'] = '@parameter.inner',
@@ -80,3 +79,4 @@ if not ok then
 end
 
 return M
+
